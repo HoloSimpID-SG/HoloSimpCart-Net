@@ -7,14 +7,25 @@ using System.Text;
 
 namespace HoloSimpID
 {
+    /// <summary>
+    /// <br/> - <strong>COMMANDS WA KOKO DESUWA</strong>
+    /// <br/> - Even Gio's Biology Brain should be able to understand this.
+    /// </summary>
     public static class CommandConsts
     {
         public static readonly SlashCommandBuilder[] commands =
         {
+            // Each new command, write this line:
             new SlashCommandBuilder()
+                // This is the name, which will be used to call the command
                 .WithName("create-cart")
+                // This is the tooltip for hints, can leave blank with "", or leave a Dad Joke Ina would be proud of
                 .WithDescription("Create a new cart")
+                // This becomes the parameters, staring with name, type and then hint
+                // ..can add multiple parameters by repeating the line below
                 .AddOption("cart-name", ApplicationCommandOptionType.String, "The name of the cart", isRequired: true),
+
+            /// Once you are done adding it here, go to <see cref="responses"/>
 
             new SlashCommandBuilder()
                 .WithName("get-cart")
@@ -35,8 +46,11 @@ namespace HoloSimpID
 
         public static readonly Dictionary<string, Action<SocketSlashCommand>> responses = new()
         {
+            // Add the command name like this, followed by comma:
             { "create-cart",
+                // Write this exact line: (Though honestly the "command" part can be anything, but let's not fry our brains here)
                 command => {
+                    // Everything inside will be what the command does
                     List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
 
                     Simp owner = null;
@@ -52,7 +66,8 @@ namespace HoloSimpID
 
                     Cart cart = new(parameters[0].ToString(), owner);
                     PsuedoDB.carts.AddAutoKey(cart);
-
+                    
+                    // The Bot will reply with whatever you write here
                     command.RespondAsync($"Created Cart:\n {cart}");
                 }
             },
