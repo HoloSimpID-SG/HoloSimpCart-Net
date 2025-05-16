@@ -12,8 +12,6 @@ namespace HoloSimpID
 {
     public class CartBot
     {
-        private const string DiscordToken = "MTM3MjIyNjM1NTg0ODI4NjM1MA.Gf7JSo.nIc4SuhcoqG1bp0mwd-gSxSRGO-j1-n_wvJ_kU";
-        private const long GuildId = 854176842847354920;
         //-+-+-+-+-+-+-+-+
         // Discord Component
         //-+-+-+-+-+-+-+-+
