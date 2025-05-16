@@ -23,25 +23,34 @@ namespace HoloSimpID
                 .WithDescription("Create a new cart")
                 // This becomes the parameters, staring with name, type and then hint
                 // ..can add multiple parameters by repeating the line below
-                .AddOption("cart-name", ApplicationCommandOptionType.String, "The name of the cart", isRequired: true),
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true),
 
             /// Once you are done adding it here, go to <see cref="responses"/>
 
             new SlashCommandBuilder()
-                .WithName("get-cart")
+                .WithName("get-cart-by-name")
                 .WithDescription("Create a new cart")
-                .AddOption("cart-name", ApplicationCommandOptionType.String, "The name of the cart", isRequired: true),
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true),
 
             new SlashCommandBuilder()
-                .WithName("close-cart")
+                .WithName("get-cart-by-id")
+                .WithDescription("Create a new cart")
+                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina Gio", isRequired: true),
+
+            new SlashCommandBuilder()
+                .WithName("close-cart-by-name")
                 .WithDescription("Closes a Cart")
-                .AddOption("cart-name", ApplicationCommandOptionType.String, "The name of the cart", isRequired: true),
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true),
+            new SlashCommandBuilder()
+                .WithName("close-cart-by-id")
+                .WithDescription("Closes a Cart")
+                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina Gio", isRequired: true),
 
             new SlashCommandBuilder()
                 .WithName("cart-add-item")
                 .WithDescription("Closes a Cart")
-                .AddOption("item-name", ApplicationCommandOptionType.String, "The name of the cart", isRequired: true)
-                .AddOption("cart-name", ApplicationCommandOptionType.String, "The name of the cart", isRequired: true),
+                .AddOption("item-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true)
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true),
         };
 
         public static readonly Dictionary<string, Action<SocketSlashCommand>> responses = new()
@@ -53,38 +62,46 @@ namespace HoloSimpID
                     // Everything inside will be what the command does
                     List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
 
-                    Simp owner = null;
-                    foreach(Simp simp in PsuedoDB.Simps)
-                    {
-                        if (simp.name == command.User.Username)
-                        {
-                            owner = simp;
-                            break;
-                        }
-                    }
-                    owner ??= new(command.User.Username);
+                    string userName = command.User.Username;
+                    string cartName = parameters[0] as string;
 
-                    Cart cart = new(parameters[0].ToString(), owner);
-                    PsuedoDB.carts.AddAutoKey(cart);
+                    Simp owner = Simp.GetSimp(userName);
+                    owner ??= new Simp(userName);
+
+                    Cart cart = new(cartName, owner);
                     
                     // The Bot will reply with whatever you write here
                     command.RespondAsync($"Created Cart:\n {cart}");
                 }
             },
-            { "get-cart",
+            { "get-cart-by-name",
                 command => {
                     List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
 
                     string userName = command.User.Username;
                     string cartName = parameters[0] as string;
 
-                    Cart cart = null;
-                    foreach(Cart cartLookup in PsuedoDB.carts.Values)
-                        if(cartLookup.cartName == cartName) cart = cartLookup;
-
+                    Cart cart = Cart.GetCart(cartName);
                     if (cart == null)
                     {
-                        command.RespondAsync($"No Cart with Name or Id was found.");
+                        command.RespondAsync($"No Cart with name: {cartName} was found.");
+                        return;
+                    }
+
+                    command.RespondAsync($"{cart}");
+                }
+            },
+            { "get-cart-by-id",
+                command => {
+                    List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
+
+                    string userName = command.User.Username;
+                    uint cartId = Convert.ToUInt32(parameters[0]);
+
+                    Cart cart = Cart.GetCart(cartId);
+                    if (cart == null)
+                    {
+                        command.RespondAsync($"No Cart with id: {cartId} was found.");
                         return;
                     }
 
@@ -99,52 +116,58 @@ namespace HoloSimpID
                     string itemName = parameters[0] as string;
                     string cartName = parameters[1] as string;
 
-                    Cart cart = null;
-                    foreach(Cart cartLookup in PsuedoDB.carts.Values)
-                        if(cartLookup.cartName == cartName) cart = cartLookup;
-
+                    Cart cart = Cart.GetCart(cartName);
                     if (cart == null)
                     {
-                        command.RespondAsync($"No Cart with Name or Id was found.");
+                        command.RespondAsync($"No Cart with name: {cartName} was found.");
                         return;
                     }
 
                     if(!cart.stillOpen)
                     {
-                        command.RespondAsync($"Cart is already closed.");
+                        command.RespondAsync($"Cart {cartName} is already closed.");
                         return;
                     }
 
-                    Simp simp = null;
-                    foreach(Simp simpLookup in PsuedoDB.Simps)
-                    {
-                        if (simpLookup.name == userName)
-                        {
-                            simp = simpLookup;
-                            break;
-                        }
-                    }
-                    simp ??= new(command.User.Username);
+                    Simp simp = Simp.GetSimp(userName);
+                    simp ??= new Simp(userName);
 
                     cart.addItem(new(itemName), simp);
 
                     command.RespondAsync($"{userName} added {itemName} to Cart:\n {cart}");
                 }
             },
-            { "close-cart",
+            { "close-cart-by-name",
                 command => {
                     List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
 
                     string userName = command.User.Username;
                     string cartName = parameters[0] as string;
 
-                    Cart cart = null;
-                    foreach(Cart cartLookup in PsuedoDB.carts.Values)
-                        if(cartLookup.cartName == cartName) cart = cartLookup;
+                    Cart cart = Cart.GetCart(cartName);
 
                     if (cart == null)
                     {
-                        command.RespondAsync($"No Cart with Name or Id was found.");
+                        command.RespondAsync($"No Cart with name: {cartName} was found.");
+                        return;
+                    }
+
+                    cart.closeCart();
+
+                    command.RespondAsync($"{userName} has closed: \n {cart}");
+                }
+            },
+            { "close-cart-by-id",
+                command => {
+                    List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
+
+                    string userName = command.User.Username;
+                    uint cartId = Convert.ToUInt32(parameters[0]);
+
+                    Cart cart = Cart.GetCart(cartId);
+                    if (cart == null)
+                    {
+                        command.RespondAsync($"No Cart with id: {cartId} was found.");
                         return;
                     }
 

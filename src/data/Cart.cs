@@ -1,15 +1,21 @@
-﻿using System;
+﻿using RuTakingTooLong.src.library;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace HoloSimpID
 {
     public class Cart : IIndexer
     {
+        //-+-+-+-+-+-+-+-+
+        // Indexer
+        //-+-+-+-+-+-+-+-+
         private static uint indexer = 0;
-        public uint uDex { get; private set; }
+        public uint uDex => UDex; private readonly uint UDex;
+
+        private static readonly Dictionary<uint, Cart> uDexCarts = new();
+        //-+-+-+-+-+-+-+-+
 
         public string cartName;
         public bool stillOpen;
@@ -26,7 +32,8 @@ namespace HoloSimpID
 
         public Cart(string cartName, Simp cartOwner)
         {
-            uDex = indexer++;
+            UDex = indexer++;
+            uDexCarts.Add(uDex, this);
 
             this.cartName = cartName;
             this.cartOwner = cartOwner;
@@ -34,6 +41,37 @@ namespace HoloSimpID
             cartDateStart = DateTime.Now;
             stillOpen = true;
             cartItems = new();
+        }
+        /// <summary>
+        /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        /// <br/> - Returns the cart with the <see cref="uDex"/> <paramref name="cartId"/>.
+        /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        /// </summary>
+        public static Cart GetCart(uint cartId)
+        {
+            if (uDexCarts.TryGetValue(cartId, out var cart))
+                return cart;
+            return null;
+        }
+        /// <summary>
+        /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        /// <br/> - Returns the first <see cref="Cart"/> with <see cref="Cart.cartName"/> that matches the <paramref name="cartName"/>.
+        /// <br/> - Prioritize open carts.
+        /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        /// </summary>
+        public static Cart GetCart(string cartName)
+        {
+            var carts = uDexCarts.Where(x => x.Value.cartName == cartName).Select(x => x.Value);
+            if (carts.IsNullOrEmpty())
+                return null;
+            else
+            {
+                var openCarts = carts.Where(x => x.stillOpen);
+                if (openCarts.IsNullOrEmpty())
+                    return carts.First();
+                else
+                    return openCarts.First();
+            }
         }
         public double getAllCost()
         {

@@ -12,6 +12,8 @@ namespace HoloSimpID
 {
     public class CartBot
     {
+        private static string DiscordToken => TokenHolder.DiscordToken;
+        private static ulong GuildId => TokenHolder.GuildId;
         //-+-+-+-+-+-+-+-+
         // Discord Component
         //-+-+-+-+-+-+-+-+
@@ -43,6 +45,15 @@ namespace HoloSimpID
         public static async Task Client_Ready()
         {
             var guild = client.GetGuild(GuildId);
+
+            //-+-+-+-+-+-+-+-+
+            // Clear Commands
+            // .. if not, it will retain already deleted commands
+            // .. or fail to update with new logic
+            //-+-+-+-+-+-+-+-+
+            await guild.DeleteApplicationCommandsAsync();
+
+            //-+-+-+-+-+-+-+-+
             try
             {
                 foreach(var command in CommandConsts.commands)
@@ -65,10 +76,7 @@ namespace HoloSimpID
             foreach (var respond in CommandConsts.responses)
             {
                 if (command.Data.Name == respond.Key)
-                {
-                    respond.Value(command);
                     await Task.Run(() => respond.Value(command));
-                }
             }
         }
         private static Task Log(LogMessage msg)
