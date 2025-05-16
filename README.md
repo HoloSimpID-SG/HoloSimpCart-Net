@@ -9,3 +9,5 @@ TODO:
   - Need to update Indexing, need to wait for proper DB for this, lest it keep breaking
 - The Simp class is dogshit, but I want to keep the reference to Discord username. Need to do something about this
 - Need to look for a way to interchangibly call objects by both index and data.
+
+Testing Ping for WebHook will be deleted on next commit
