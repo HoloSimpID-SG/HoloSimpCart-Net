@@ -6,16 +6,18 @@ using System.Text;
 
 namespace HoloSimpID
 {
-    public class Cart : IIndexer
+    public class Cart
     {
         //-+-+-+-+-+-+-+-+
         // Indexer
         //-+-+-+-+-+-+-+-+
+        #region Indexer
         private static uint indexer = 0;
         public uint uDex => UDex; private readonly uint UDex;
 
         private static readonly Dictionary<uint, Cart> uDexCarts = new();
         //-+-+-+-+-+-+-+-+
+        #endregion
 
         public string cartName;
         public bool stillOpen;
@@ -25,23 +27,34 @@ namespace HoloSimpID
         public DateTime cartDatePlan;
         public DateTime cartDateEnd;
 
-        public Dictionary<Simp, List<Item>> cartItems;
-        public double costShipping;
+        private Dictionary<Simp, Dictionary<Item, uint>> cartItems;
+        private double costShipping;
         public int totalSimps => cartItems.Count;
         public int totalItems => cartItems.Sum(x => x.Value.Count);
 
-        public Cart(string cartName, Simp cartOwner)
+        public Cart(string cartName, Simp cartOwner, DateTime? cartDatePlan = null)
         {
+            //-+-+-+-+-+-+-+-+
+            // Indexer
+            //-+-+-+-+-+-+-+-+
+            #region Indexer
             UDex = indexer++;
             uDexCarts.Add(uDex, this);
+            //-+-+-+-+-+-+-+-+
+            #endregion
 
             this.cartName = cartName;
             this.cartOwner = cartOwner;
 
             cartDateStart = DateTime.Now;
+            this.cartDatePlan = cartDatePlan ?? DateTime.Now.AddDays(Consts.defaultCartPlan);
             stillOpen = true;
             cartItems = new();
         }
+        //-+-+-+-+-+-+-+-+-+
+        // Instance Getter
+        //-+-+-+-+-+-+-+-+-+
+        #region Instance Getter
         /// <summary>
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// <br/> - Returns the cart with the <see cref="uDex"/> <paramref name="cartId"/>.
@@ -73,66 +86,87 @@ namespace HoloSimpID
                     return openCarts.First();
             }
         }
-        public double getAllCost()
+        /// <summary>
+        /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        /// <br/> - Fills a <see cref="IList{T}"/> of <see cref="Cart"/> that fullfils the <paramref name="predicate"/>.
+        /// <br/> - <paramref name="predicate"/> takes the <see langword="uint"/> for the index to access the <see cref="IDictionary{TKey, TValue}"/>.
+        /// <br/> - The <see cref="IDictionary{TKey, TValue}"/> will take <see cref="uDexCarts"/>.
+        /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+        /// </summary>
+        public static void GetAllCarts(IList<Cart> carts, Func<uint, IDictionary<uint, Cart>, bool> predicate = null)
         {
-            double total = 0.0;
-            total += costShipping;
-            foreach(List<Item> listItem in cartItems.Values)
-            {
-                foreach (Item item in listItem)
-                    total += item.priceSGD;
-            }
-            return total;
+            predicate ??= (i, l) => l[i] != null;
+            int len = uDexCarts.Count;
+            for (uint i = 0; i < len; i++)
+                if (!predicate(i, uDexCarts)) carts.Add(uDexCarts[i]);
         }
-
-        public double getCostPerSimp(Simp simp)
+        /// <summary>
+        /// <inheritdoc cref="GetAllCarts"/>
+        /// </summary>
+        public static List<Cart> GetAllCarts(Func<uint, IDictionary<uint, Cart>, bool> predicate = null)
         {
-            double total = 0.0;
-            total += costShipping / totalSimps;
-            foreach(Item item in cartItems[simp])
-                total += item.priceSGD;
-            return total;
+            List<Cart> carts = new();
+            GetAllCarts(carts, predicate);
+            return carts;
         }
+        public static Cart GetLastCart()
+        {
+            if (uDexCarts.Count == 0)
+                return null;
+            return uDexCarts.Last().Value;
+        }
+        //-+-+-+-+-+-+-+-+-+
+        #endregion
 
         public void closeCart()
         {
             stillOpen = false;
             cartDateEnd = DateTime.Now;
+            double shippingCost = costShipping / totalSimps;
+
+            foreach (var kvp in cartItems)
+            {
+                Simp simp = kvp.Key;
+                foreach (var itemQuantityPair in kvp.Value)
+                    simp.addItemToHistory(itemQuantityPair);
+                simp.addMiscSpending(shippingCost);
+            }
         }
 
-        public override string ToString()
+        public override string ToString() => $"{cartName}";
+        public string getDetails()
         {
             StringBuilder strResult = new();
-            strResult.AppendLine($"Cart Name: {cartName} (id: {uDex})");
+            strResult.AppendLine($"# {cartName} (id: {uDex})");
             strResult.AppendLine($"- Owned by: {cartOwner.name}");
             strResult.Append($"- Status: ");
             strResult.AppendLine(stillOpen ? $"Open" : "Close");
             strResult.AppendLine($"- Opened at: {cartDateStart}");
             strResult.AppendLine($"- Item List:");
-            foreach(var kvp in cartItems)
+            foreach (var kvp in cartItems)
             {
-                strResult.Append($"{kvp.Key.name}: ");
-                foreach(Item item in kvp.Value)
-                    strResult.Append($"{item.name}, ");
-                strResult.Remove(strResult.Length - 2, 2);
-                strResult.Append('\n');
+                Simp simp = kvp.Key;
+                strResult.AppendLine($" - {simp}: ");
+                foreach (var itemQuantityPair in kvp.Value)
+                    strResult.AppendLine($"  - {itemQuantityPair.Key.name} ({itemQuantityPair.Key.priceSGD:C2}) x{itemQuantityPair.Value}");
             }
             return strResult.ToString();
         }
 
-        public void addItem(Item item, Simp simp)
+        public bool addItem(Simp simp, Item item, uint quantity = 1)
         {
             if (stillOpen)
             {
-                if (cartItems.TryGetValue(simp, out List<Item> simpItems))
-                    simpItems.Add(item);
-                else
+                Dictionary<Item, uint> simpItems;
+                if (!cartItems.TryGetValue(simp, out simpItems))
                 {
-                    simpItems = new List<Item>();
-                    simpItems.Add(item);
+                    simpItems = new();
                     cartItems.Add(simp, simpItems);
                 }
+                simpItems.AddFrequency(item, quantity);
+                return true;
             }
+            return false;
         }
     }
 }

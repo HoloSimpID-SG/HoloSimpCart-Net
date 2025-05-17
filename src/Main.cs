@@ -51,24 +51,27 @@ namespace HoloSimpID
             // .. if not, it will retain already deleted commands
             // .. or fail to update with new logic
             //-+-+-+-+-+-+-+-+
-            await guild.DeleteApplicationCommandsAsync();
+            //await client.Rest.DeleteAllGlobalCommandsAsync();
+            //await guild.DeleteApplicationCommandsAsync();
 
             //-+-+-+-+-+-+-+-+
-            try
+            foreach (var command in CommandConsts.commands)
             {
-                foreach(var command in CommandConsts.commands)
+                try
+                {
                     await guild.CreateApplicationCommandAsync(command.Build());
-            }
-            catch (HttpException exception)
-            {
-                var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
+                }
+                catch (HttpException exception)
+                {
+                    var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
 
-                Console.WriteLine("Something Broke, idk... this is the first time I am making a bot");
-                Console.WriteLine(json);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Something Broke, idk... this is the first time I am making a bot. Here's the message:\n{e.Message}\nGo Figure or Go Vibe.");
+                    Console.WriteLine("Something Broke, idk... this is the first time I am making a bot");
+                    Console.WriteLine(json);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine($"Something Broke, idk... this is the first time I am making a bot. Here's the message:\n{e.Message}\nGo Figure or Go Vibe.");
+                }
             }
         }
         private static async Task SlashCommandHandler(SocketSlashCommand command)

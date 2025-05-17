@@ -107,11 +107,13 @@
     <Compile Include="src\Consts.cs" />
     <Compile Include="src\data\Item.cs" />
     <Compile Include="src\data\Simp.cs" />
-    <Compile Include="src\interfaces\IIndexer.cs" />
     <Compile Include="src\library\ArrayUtils.cs" />
     <Compile Include="src\Main.cs" />
     <Compile Include="src\PsuedoDB.cs" />
     <Compile Include="src\TokenHolder.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="src\interfaces\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

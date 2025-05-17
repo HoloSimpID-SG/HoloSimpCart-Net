@@ -1,4 +1,6 @@
-﻿namespace HoloSimpID
+﻿using RuTakingTooLong.src.library;
+
+namespace HoloSimpID
 {
     public class Item 
     {
@@ -13,6 +15,6 @@
             this.priceSGD = priceSGD;
         }
 
-        public static implicit operator string(Item item) => item.name;
+        public override string ToString() => link.IsNullOrEmpty() ? name : $"[{name}]({link})";
     }
 }

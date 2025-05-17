@@ -23,34 +23,49 @@ namespace HoloSimpID
                 .WithDescription("Create a new cart")
                 // This becomes the parameters, staring with name, type and then hint
                 // ..can add multiple parameters by repeating the line below
-                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true),
-
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true)
+                , // Move the comma here to make it easier to add new Parameters
             /// Once you are done adding it here, go to <see cref="responses"/>
 
             new SlashCommandBuilder()
                 .WithName("get-cart-by-name")
                 .WithDescription("Create a new cart")
-                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true),
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true)
+                ,
 
             new SlashCommandBuilder()
                 .WithName("get-cart-by-id")
                 .WithDescription("Create a new cart")
-                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina Gio", isRequired: true),
+                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina Gio", isRequired: true)
+                ,
 
             new SlashCommandBuilder()
                 .WithName("close-cart-by-name")
                 .WithDescription("Closes a Cart")
-                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true),
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true)
+                ,
             new SlashCommandBuilder()
                 .WithName("close-cart-by-id")
                 .WithDescription("Closes a Cart")
-                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina Gio", isRequired: true),
+                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina Gio", isRequired: true)
+                ,
 
             new SlashCommandBuilder()
-                .WithName("cart-add-item")
-                .WithDescription("Closes a Cart")
+                .WithName("add-item-by-id")
+                .WithDescription("Adds Item")
+                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina Gio", isRequired: true)
                 .AddOption("item-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true)
-                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true),
+                .AddOption("item-link", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true)
+                .AddOption("quantity", ApplicationCommandOptionType.Integer, "Where's my Hina Gio", isRequired: true)
+                ,
+            new SlashCommandBuilder()
+                .WithName("add-item-by-name")
+                .WithDescription("Adds Item")
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true)
+                .AddOption("item-name", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true)
+                .AddOption("item-link", ApplicationCommandOptionType.String, "Where's my Hina Gio", isRequired: true)
+                .AddOption("quantity", ApplicationCommandOptionType.Integer, "Where's my Hina Gio", isRequired: true)
+                ,
         };
 
         public static readonly Dictionary<string, Action<SocketSlashCommand>> responses = new()
@@ -71,7 +86,7 @@ namespace HoloSimpID
                     Cart cart = new(cartName, owner);
                     
                     // The Bot will reply with whatever you write here
-                    command.RespondAsync($"Created Cart:\n {cart}");
+                    command.RespondAsync($"Created Cart:\n{cart.getDetails()}");
                 }
             },
             { "get-cart-by-name",
@@ -88,7 +103,7 @@ namespace HoloSimpID
                         return;
                     }
 
-                    command.RespondAsync($"{cart}");
+                    command.RespondAsync(cart.getDetails());
                 }
             },
             { "get-cart-by-id",
@@ -105,16 +120,46 @@ namespace HoloSimpID
                         return;
                     }
 
-                    command.RespondAsync($"{cart}");
+                    command.RespondAsync(cart.getDetails());
                 }
             },
-            { "cart-add-item",
+            { "add-item-by-id",
                 command => {
                     List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
 
                     string userName = command.User.Username;
-                    string itemName = parameters[0] as string;
-                    string cartName = parameters[1] as string;
+                    uint cartId = Convert.ToUInt32(parameters[0]);
+                    string itemName = parameters[1] as string;
+                    string itemLink = parameters[2] as string;
+                    uint quantity = Convert.ToUInt32(parameters[3] ?? 1);
+
+                    Cart cart = Cart.GetCart(cartId);
+                    if (cart == null)
+                    {
+                        command.RespondAsync($"No Cart with id: {cartId} was found.");
+                        return;
+                    }
+                    Simp simp = Simp.GetSimp(userName);
+                    simp ??= new Simp(userName);
+
+                    if(!cart.addItem(simp, new(itemName, itemLink), quantity))
+                    {
+                        command.RespondAsync($"{cart} is already closed.");
+                        return;
+                    }
+
+                    command.RespondAsync($"{userName} added {itemName} to {cart}");
+                }
+            },
+            { "add-item-by-name",
+                command => {
+                    List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
+
+                    string userName = command.User.Username;
+                    string cartName = parameters[0] as string;
+                    string itemName = parameters[1] as string;
+                    string itemLink = parameters[2] as string;
+                    uint quantity = Convert.ToUInt32(parameters[3] ?? 1);
 
                     Cart cart = Cart.GetCart(cartName);
                     if (cart == null)
@@ -123,18 +168,16 @@ namespace HoloSimpID
                         return;
                     }
 
-                    if(!cart.stillOpen)
-                    {
-                        command.RespondAsync($"Cart {cartName} is already closed.");
-                        return;
-                    }
-
                     Simp simp = Simp.GetSimp(userName);
                     simp ??= new Simp(userName);
 
-                    cart.addItem(new(itemName), simp);
+                    if(!cart.addItem(simp, new(itemName, itemLink), quantity))
+                    {
+                        command.RespondAsync($"{cart} is already closed.");
+                        return;
+                    }
 
-                    command.RespondAsync($"{userName} added {itemName} to Cart:\n {cart}");
+                    command.RespondAsync($"{userName} added {itemName} to {cart}");
                 }
             },
             { "close-cart-by-name",
