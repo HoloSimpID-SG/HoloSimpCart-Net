@@ -2,7 +2,7 @@
 
 namespace HoloSimpID
 {
-    public class Item 
+    public class Item
     {
         public string name;
         public string link;
@@ -15,6 +15,6 @@ namespace HoloSimpID
             this.priceSGD = priceSGD;
         }
 
-        public override string ToString() => link.IsNullOrEmpty() ? name : $"[{name}]({link})";
+        public override string ToString() => name.Hyperlink(link);
     }
 }

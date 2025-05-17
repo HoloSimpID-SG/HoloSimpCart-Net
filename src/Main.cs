@@ -4,9 +4,7 @@ using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
-using System.Windows.Input;
 
 namespace HoloSimpID
 {
@@ -14,11 +12,12 @@ namespace HoloSimpID
     {
         private static string DiscordToken => TokenHolder.DiscordToken;
         private static ulong GuildId => TokenHolder.GuildId;
+
         //-+-+-+-+-+-+-+-+
         // Discord Component
         //-+-+-+-+-+-+-+-+
-        static DiscordSocketClient Client; public static DiscordSocketClient client => Client;
-        static CommandService Commands; public static CommandService commands => Commands;
+        private static DiscordSocketClient Client; public static DiscordSocketClient client => Client;
+        private static CommandService Commands; public static CommandService commands => Commands;
 
         public static async Task Main()
         {
@@ -29,7 +28,7 @@ namespace HoloSimpID
             // Logging
             //-+-+-+-+-+-+-+-+
             client.Log += Log;
-            client.Ready += Client_Ready;
+            client.Ready += ClientReady;
             client.SlashCommandExecuted += SlashCommandHandler;
 
             //-+-+-+-+-+-+-+-+
@@ -42,7 +41,7 @@ namespace HoloSimpID
             await Task.Delay(-1);
         }
 
-        public static async Task Client_Ready()
+        public static async Task ClientReady()
         {
             var guild = client.GetGuild(GuildId);
 
@@ -74,6 +73,7 @@ namespace HoloSimpID
                 }
             }
         }
+
         private static async Task SlashCommandHandler(SocketSlashCommand command)
         {
             foreach (var respond in CommandConsts.responses)
@@ -82,6 +82,7 @@ namespace HoloSimpID
                     await Task.Run(() => respond.Value(command));
             }
         }
+
         private static Task Log(LogMessage msg)
         {
             Console.WriteLine(msg.ToString());

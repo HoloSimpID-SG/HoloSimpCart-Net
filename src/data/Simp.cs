@@ -1,9 +1,7 @@
 ﻿using RuTakingTooLong.src.library;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using static System.Windows.Forms.LinkLabel;
 
 namespace HoloSimpID
 {
@@ -17,13 +15,16 @@ namespace HoloSimpID
         public uint uDex => UDex; private readonly uint UDex;
 
         private static readonly Dictionary<uint, Simp> uDexSimps = new();
+        private static readonly Dictionary<string, Simp> uGuidSimps = new();
         //-+-+-+-+-+-+-+-+
         #endregion
 
+        public string dcUserName;
         public string name;
         public Dictionary<double, uint> merchSpending;
         public Dictionary<double, uint> miscSpending;
-        public Simp(string name)
+
+        public Simp(string dcUserName, string name = null)
         {
             //-+-+-+-+-+-+-+-+
             // Indexer
@@ -31,17 +32,22 @@ namespace HoloSimpID
             #region Indexer
             UDex = indexer++;
             uDexSimps.Add(uDex, this);
+            uGuidSimps.Add(dcUserName, this);
             //-+-+-+-+-+-+-+-+
             #endregion
 
-            this.name = name;
+            this.dcUserName = dcUserName;
+            this.name = name ?? dcUserName;
             merchSpending = new();
             miscSpending = new();
         }
+
         //-+-+-+-+-+-+-+-+-+
         // Instance Getter
         //-+-+-+-+-+-+-+-+-+
+
         #region Instance Getter
+
         /// <summary>
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// <br/> - Returns the cart with the <see cref="uDex"/> <paramref name="cartId"/>.
@@ -53,6 +59,7 @@ namespace HoloSimpID
                 return simp;
             return null;
         }
+
         /// <summary>
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// <br/> - Returns the first <see cref="Simp"/> with <see cref="Simp.name"/> that matches the <paramref name="cartName"/>.
@@ -67,6 +74,7 @@ namespace HoloSimpID
             else
                 return simps.First();
         }
+
         /// <summary>
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// <br/> - Fills a <see cref="IList{T}"/> of <see cref="Simp"/> that fullfils the <paramref name="predicate"/>.
@@ -81,6 +89,7 @@ namespace HoloSimpID
             for (uint i = 0; i < len; i++)
                 if (!predicate(i, uDexSimps)) simps.Add(uDexSimps[i]);
         }
+
         /// <summary>
         /// <inheritdoc cref="GetAllSimps"/>
         /// </summary>
@@ -90,11 +99,15 @@ namespace HoloSimpID
             GetAllSimps(simps, predicate);
             return simps;
         }
+
         //-+-+-+-+-+-+-+-+-+
+
         #endregion
-        
+
         public void addItemToHistory(Item item) => merchSpending.AddFrequency(item.priceSGD);
+
         public void addItemToHistory(KeyValuePair<Item, uint> itemQuantityPair) => merchSpending.AddFrequency(itemQuantityPair.Key.priceSGD, itemQuantityPair.Value);
+
         public void addMiscSpending(double priceInSGD) => miscSpending.AddFrequency(priceInSGD);
 
         public override string ToString() => name;

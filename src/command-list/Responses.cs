@@ -1,6 +1,8 @@
 ﻿using Discord.WebSocket;
+using RuTakingTooLong.src.library;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace HoloSimpID
@@ -11,17 +13,23 @@ namespace HoloSimpID
     /// </summary>
     public static partial class CommandConsts
     {
-        public static readonly Dictionary<string, Action<SocketSlashCommand>> responses = new()
+        public static readonly ImmutableDictionary<string, Action<SocketSlashCommand>> responses = new Dictionary<string, Action<SocketSlashCommand>>()
         {
             // Add the command name like this, followed by comma:
             { "create-cart",
                 // Write this exact line: (Though honestly the "command" part can be anything, but let's not fry our brains here)
                 command => {
-                    // Everything inside will be what the command does
-                    List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
+                    // This is a reader I made so that is simple
+                    // ..This is a Dictionary<string, object>,
+                    // ..use the name you put back during .AddOption() to as the key.
+                    var parameters = MoLibrary.ReadCommandParameter(command);
 
+                    // This line gets the discord username of the person who called the command
                     string userName = command.User.Username;
-                    string cartName = parameters[0] as string;
+                    // Make sure to perform Conversion as this params values are object.
+                    // ..for numerics, call a "Convert.ToType(parameters[key])"
+                    // ..for string a simple "as string" is enough
+                    string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
 
                     Simp owner = Simp.GetSimp(userName);
                     owner ??= new Simp(userName);
@@ -32,12 +40,16 @@ namespace HoloSimpID
                     command.RespondAsync($"Created Cart:\n{cart.getDetails()}");
                 }
             },
+
+            //-+-+-+-+-+-+-+-+
+            // Get Cart Commands
+            //-+-+-+-+-+-+-+-+
             { "get-cart-by-name",
                 command => {
-                    List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
+                    var parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
-                    string cartName = parameters[0] as string;
+                    string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
 
                     Cart cart = Cart.GetCart(cartName);
                     if (cart == null)
@@ -51,10 +63,10 @@ namespace HoloSimpID
             },
             { "get-cart-by-id",
                 command => {
-                    List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
+                    var parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
-                    uint cartId = Convert.ToUInt32(parameters[0]);
+                    int cartId = parameters.GetCastedValueOrDefault("cart-id", -1);
 
                     Cart cart = Cart.GetCart(cartId);
                     if (cart == null)
@@ -66,69 +78,16 @@ namespace HoloSimpID
                     command.RespondAsync(cart.getDetails());
                 }
             },
-            { "add-item-by-id",
-                command => {
-                    List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
 
-                    string userName = command.User.Username;
-                    uint cartId = Convert.ToUInt32(parameters[0]);
-                    string itemName = parameters[1] as string;
-                    string itemLink = parameters[2] as string;
-                    uint quantity = Convert.ToUInt32(parameters[3] ?? 1);
-
-                    Cart cart = Cart.GetCart(cartId);
-                    if (cart == null)
-                    {
-                        command.RespondAsync($"No Cart with id: {cartId} was found.");
-                        return;
-                    }
-                    Simp simp = Simp.GetSimp(userName);
-                    simp ??= new Simp(userName);
-
-                    if(!cart.addItem(simp, new(itemName, itemLink), quantity))
-                    {
-                        command.RespondAsync($"{cart} is already closed.");
-                        return;
-                    }
-
-                    command.RespondAsync($"{userName} added {itemName} to {cart}");
-                }
-            },
-            { "add-item-by-name",
-                command => {
-                    List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
-
-                    string userName = command.User.Username;
-                    string cartName = parameters[0] as string;
-                    string itemName = parameters[1] as string;
-                    string itemLink = parameters[2] as string;
-                    uint quantity = Convert.ToUInt32(parameters[3] ?? 1);
-
-                    Cart cart = Cart.GetCart(cartName);
-                    if (cart == null)
-                    {
-                        command.RespondAsync($"No Cart with name: {cartName} was found.");
-                        return;
-                    }
-
-                    Simp simp = Simp.GetSimp(userName);
-                    simp ??= new Simp(userName);
-
-                    if(!cart.addItem(simp, new(itemName, itemLink), quantity))
-                    {
-                        command.RespondAsync($"{cart} is already closed.");
-                        return;
-                    }
-
-                    command.RespondAsync($"{userName} added {itemName} to {cart}");
-                }
-            },
+            //-+-+-+-+-+-+-+-+
+            // Close Cart Commands
+            //-+-+-+-+-+-+-+-+
             { "close-cart-by-name",
                 command => {
-                    List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
+                    var parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
-                    string cartName = parameters[0] as string;
+                    string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
 
                     Cart cart = Cart.GetCart(cartName);
 
@@ -145,10 +104,10 @@ namespace HoloSimpID
             },
             { "close-cart-by-id",
                 command => {
-                    List<object> parameters = command.Data.Options.Select(x => x.Value).ToList();
+                    var parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
-                    uint cartId = Convert.ToUInt32(parameters[0]);
+                    int cartId = parameters.GetCastedValueOrDefault("cart-id", -1);
 
                     Cart cart = Cart.GetCart(cartId);
                     if (cart == null)
@@ -162,6 +121,69 @@ namespace HoloSimpID
                     command.RespondAsync($"{userName} has closed: \n {cart}");
                 }
             },
-        };
+
+            //-+-+-+-+-+-+-+-+
+            // Add Item to Cart Commands
+            //-+-+-+-+-+-+-+-+
+            { "add-item-by-id",
+                command => {
+                    var parameters = MoLibrary.ReadCommandParameter(command);
+
+                    string userName = command.User.Username;
+                    int cartId = parameters.GetCastedValueOrDefault("cart-id", -1);
+                    string itemName = parameters.GetCastedValueOrDefault("item-name", string.Empty);
+                    string itemLink = parameters.GetCastedValueOrDefault("item-link", string.Empty);
+                    double itemPrice = parameters.GetCastedValueOrDefault("item-price", 0.0);
+                    uint quantity = parameters.GetCastedValueOrDefault("quantity", 1u);
+
+                    Cart cart = Cart.GetCart(cartId);
+                    if (cart == null)
+                    {
+                        command.RespondAsync($"No Cart with id: {cartId} was found.");
+                        return;
+                    }
+                    Simp simp = Simp.GetSimp(userName);
+                    simp ??= new Simp(userName);
+
+                    if(!cart.addItem(simp, new(itemName, itemLink, itemPrice), quantity))
+                    {
+                        command.RespondAsync($"{cart} is already closed.");
+                        return;
+                    }
+
+                    command.RespondAsync($"{userName} added {itemName} to {cart}");
+                }
+            },
+            { "add-item-by-name",
+                command => {
+                    var parameters = MoLibrary.ReadCommandParameter(command);
+
+                    string userName = command.User.Username;
+                    string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
+                    string itemName = parameters.GetCastedValueOrDefault("item-name", string.Empty);
+                    string itemLink = parameters.GetCastedValueOrDefault("item-link", string.Empty);
+                    double itemPrice = parameters.GetCastedValueOrDefault("item-price", 0.0);
+                    uint quantity = parameters.GetCastedValueOrDefault("quantity", 1u);
+
+                    Cart cart = Cart.GetCart(cartName);
+                    if (cart == null)
+                    {
+                        command.RespondAsync($"No Cart with name: {cartName} was found.");
+                        return;
+                    }
+
+                    Simp simp = Simp.GetSimp(userName);
+                    simp ??= new Simp(userName);
+
+                    if(!cart.addItem(simp, new(itemName, itemLink, itemPrice), quantity))
+                    {
+                        command.RespondAsync($"{cart} is already closed.");
+                        return;
+                    }
+
+                    command.RespondAsync($"{userName} added {itemName} to {cart}");
+                }
+            },
+        }.ToImmutableDictionary();
 }
 }

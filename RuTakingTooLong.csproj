@@ -102,12 +102,16 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="src\Commands.cs" />
+    <Compile Include="src\command-list\Responses.cs" />
+    <Compile Include="src\command-list\Commands.cs" />
+    <Compile Include="src\data\Serializers.cs" />
     <Compile Include="src\data\Cart.cs" />
-    <Compile Include="src\Consts.cs" />
+    <Compile Include="src\library\Consts.cs" />
     <Compile Include="src\data\Item.cs" />
     <Compile Include="src\data\Simp.cs" />
+    <Compile Include="src\library\DcMarkdown.cs" />
     <Compile Include="src\library\ArrayUtils.cs" />
+    <Compile Include="src\library\DiscordLibrary.cs" />
     <Compile Include="src\Main.cs" />
     <Compile Include="src\PsuedoDB.cs" />
     <Compile Include="src\TokenHolder.cs" />

@@ -19,18 +19,25 @@ namespace HoloSimpID
         //-+-+-+-+-+-+-+-+
         #endregion
 
-        public string cartName;
-        public bool stillOpen;
-        public Simp cartOwner;
+        //-+-+-+-+-+-+-+-+
+        // Cart Details
+        //-+-+-+-+-+-+-+-+
+        private readonly string cartName;
+        private bool stillOpen;
+        private Simp cartOwner;
 
-        public DateTime cartDateStart = DateTime.Now;
-        public DateTime cartDatePlan;
-        public DateTime cartDateEnd;
+        //-+-+-+-+-+-+-+-+
+        // DateTimes
+        //-+-+-+-+-+-+-+-+
+        public DateTime cartDateStart => CartDateStart; private readonly DateTime CartDateStart;
+        public DateTime cartDatePlan => CartDatePlan; private readonly DateTime CartDatePlan;
+        public DateTime cartDateEnd => CartDateEnd; private DateTime CartDateEnd;
 
+        //-+-+-+-+-+-+-+-+
+        // Indexer
+        //-+-+-+-+-+-+-+-+
         private Dictionary<Simp, Dictionary<Item, uint>> cartItems;
-        private double costShipping;
-        public int totalSimps => cartItems.Count;
-        public int totalItems => cartItems.Sum(x => x.Value.Count);
+        public double costShipping => CostShipping; private double CostShipping;
 
         public Cart(string cartName, Simp cartOwner, DateTime? cartDatePlan = null)
         {
@@ -46,11 +53,13 @@ namespace HoloSimpID
             this.cartName = cartName;
             this.cartOwner = cartOwner;
 
-            cartDateStart = DateTime.Now;
-            this.cartDatePlan = cartDatePlan ?? DateTime.Now.AddDays(Consts.defaultCartPlan);
+            CartDateStart = DateTime.Now;
+            CartDatePlan = cartDatePlan ?? DateTime.Now.AddDays(Consts.defaultCartPlan);
             stillOpen = true;
             cartItems = new();
         }
+        public override string ToString() => $"{cartName}";
+
         //-+-+-+-+-+-+-+-+-+
         // Instance Getter
         //-+-+-+-+-+-+-+-+-+
@@ -60,9 +69,11 @@ namespace HoloSimpID
         /// <br/> - Returns the cart with the <see cref="uDex"/> <paramref name="cartId"/>.
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// </summary>
-        public static Cart GetCart(uint cartId)
+        public static Cart GetCart(int cartId)
         {
-            if (uDexCarts.TryGetValue(cartId, out var cart))
+            if (cartId < 0) return GetLastCart();
+
+            if (uDexCarts.TryGetValue((uint)cartId, out var cart))
                 return cart;
             return null;
         }
@@ -118,12 +129,20 @@ namespace HoloSimpID
         //-+-+-+-+-+-+-+-+-+
         #endregion
 
+        //-+-+-+-+-+-+-+-+-+
+        // Cart Actions
+        //-+-+-+-+-+-+-+-+-+
+        public void setShippingCost(double shippingCost) => CostShipping = shippingCost;
+        public int totalSimps => cartItems.Count;
+        public long totalItems => cartItems.Sum(x => x.Value.Sum(x => x.Value));
         public void closeCart()
         {
+            // Update Status
             stillOpen = false;
-            cartDateEnd = DateTime.Now;
-            double shippingCost = costShipping / totalSimps;
+            CartDateEnd = DateTime.Now;
 
+            // Distribute all costs
+            double shippingCost = costShipping / totalSimps;
             foreach (var kvp in cartItems)
             {
                 Simp simp = kvp.Key;
@@ -132,27 +151,24 @@ namespace HoloSimpID
                 simp.addMiscSpending(shippingCost);
             }
         }
-
-        public override string ToString() => $"{cartName}";
         public string getDetails()
         {
             StringBuilder strResult = new();
             strResult.AppendLine($"# {cartName} (id: {uDex})");
             strResult.AppendLine($"- Owned by: {cartOwner.name}");
             strResult.Append($"- Status: ");
-            strResult.AppendLine(stillOpen ? $"Open" : "Close");
+            strResult.AppendLine(stillOpen ? $"Open" : "Closed");
             strResult.AppendLine($"- Opened at: {cartDateStart}");
             strResult.AppendLine($"- Item List:");
             foreach (var kvp in cartItems)
             {
                 Simp simp = kvp.Key;
-                strResult.AppendLine($" - {simp}: ");
+                strResult.AppendLine($" - {simp}:");
                 foreach (var itemQuantityPair in kvp.Value)
-                    strResult.AppendLine($"  - {itemQuantityPair.Key.name} ({itemQuantityPair.Key.priceSGD:C2}) x{itemQuantityPair.Value}");
+                    strResult.AppendLine($"  - {itemQuantityPair.Key.name} ({itemQuantityPair.Key.priceSGD:C2}) {Consts.cMultiply}{itemQuantityPair.Value}");
             }
             return strResult.ToString();
         }
-
         public bool addItem(Simp simp, Item item, uint quantity = 1)
         {
             if (stillOpen)
