@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RuTakingTooLong.src.library
+namespace HoloSimpID
 {
     public static partial class MoLibrary
     {

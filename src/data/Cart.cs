@@ -1,6 +1,7 @@
-﻿using RuTakingTooLong.src.library;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 
@@ -23,8 +24,8 @@ namespace HoloSimpID
         // Cart Details
         //-+-+-+-+-+-+-+-+
         private readonly string cartName;
-        private bool stillOpen;
-        private Simp cartOwner;
+        private readonly Simp cartOwner;    
+        public bool stillOpen => cartDateEnd < cartDateStart;
 
         //-+-+-+-+-+-+-+-+
         // DateTimes
@@ -36,10 +37,10 @@ namespace HoloSimpID
         //-+-+-+-+-+-+-+-+
         // Indexer
         //-+-+-+-+-+-+-+-+
-        private Dictionary<Simp, Dictionary<Item, uint>> cartItems;
+        private readonly Dictionary<Simp, Dictionary<Item, uint>> cartItems;
         public double costShipping => CostShipping; private double CostShipping;
 
-        public Cart(string cartName, Simp cartOwner, DateTime? cartDatePlan = null)
+        public Cart(string cartName, Simp cartOwner, DateTime? cartDateStart = null, DateTime? cartDatePlan = null)
         {
             //-+-+-+-+-+-+-+-+
             // Indexer
@@ -53,9 +54,9 @@ namespace HoloSimpID
             this.cartName = cartName;
             this.cartOwner = cartOwner;
 
-            CartDateStart = DateTime.Now;
+            CartDateStart = cartDateStart ?? DateTime.Now;
             CartDatePlan = cartDatePlan ?? DateTime.Now.AddDays(Consts.defaultCartPlan);
-            stillOpen = true;
+            CartDateEnd = CartDateStart.AddTicks(-1);
             cartItems = new();
         }
         public override string ToString() => $"{cartName}";
@@ -132,14 +133,14 @@ namespace HoloSimpID
         //-+-+-+-+-+-+-+-+-+
         // Cart Actions
         //-+-+-+-+-+-+-+-+-+
+        #region Cart Actions
         public void setShippingCost(double shippingCost) => CostShipping = shippingCost;
         public int totalSimps => cartItems.Count;
         public long totalItems => cartItems.Sum(x => x.Value.Sum(x => x.Value));
-        public void closeCart()
+        public void closeCart(DateTime? dateTime = null)
         {
             // Update Status
-            stillOpen = false;
-            CartDateEnd = DateTime.Now;
+            CartDateEnd = dateTime ?? DateTime.Now;
 
             // Distribute all costs
             double shippingCost = costShipping / totalSimps;
@@ -155,7 +156,7 @@ namespace HoloSimpID
         {
             StringBuilder strResult = new();
             strResult.AppendLine($"# {cartName} (id: {uDex})");
-            strResult.AppendLine($"- Owned by: {cartOwner.name}");
+            strResult.AppendLine($"- Owned by: {cartOwner.simpName}");
             strResult.Append($"- Status: ");
             strResult.AppendLine(stillOpen ? $"Open" : "Closed");
             strResult.AppendLine($"- Opened at: {cartDateStart}");
@@ -184,5 +185,142 @@ namespace HoloSimpID
             }
             return false;
         }
+        #endregion
+
+        //-+-+-+-+-+-+-+-+-+
+        // Database
+        //-+-+-+-+-+-+-+-+-+
+        #region Database
+        const string sqlTableName = "Carts";
+        const string sqlTableNameCartItems = "CartItems";
+        public static List<SqlCommand> SerializeAll()
+        {
+            List<SqlCommand> sqlCommands = new();
+            SerializeAll(sqlCommands);
+            return sqlCommands;
+        }
+        public static void SerializeAll(IList<SqlCommand> sqlCommands)
+        {
+            foreach (Cart cart in uDexCarts.Values)
+                cart.Serialize(sqlCommands);
+        }
+        public List<SqlCommand> Serialize()
+        {
+            List<SqlCommand> sqlCommands = new();
+            Serialize(sqlCommands);
+            return sqlCommands;
+        }
+        public void Serialize(IList<SqlCommand> sqlCommands)
+        {
+            StringBuilder strCommand = new();
+            //-+-+-+-+-+-+-+-+
+            // Create Table if not exists
+            //-+-+-+-+-+-+-+-+
+            strCommand.Clear();
+            strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableName}");
+            strCommand.Append($"(");
+            strCommand.Append($"cartName {MoLibrary.sqlDataType[typeof(string)]}, ");
+            strCommand.Append($"ownerId {MoLibrary.sqlDataType[typeof(uint)]}, ");
+            strCommand.Append($"cartDateStart {MoLibrary.sqlDataType[typeof(string)]}, ");
+            strCommand.Append($"cartDatePlan {MoLibrary.sqlDataType[typeof(string)]}, ");
+            strCommand.Append($"cartDateEnd {MoLibrary.sqlDataType[typeof(string)]}, ");
+            strCommand.Append($"costShipping {MoLibrary.sqlDataType[typeof(double)]}, ");
+            strCommand.Append($")");
+            var cmdTable = new SqlCommand(strCommand.ToString());
+            sqlCommands.Add(cmdTable);
+            strCommand.Clear();
+            strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableNameCartItems}");
+            strCommand.Append($"(");
+            strCommand.Append($"cartId {MoLibrary.sqlDataType[typeof(uint)]}, ");
+            strCommand.Append($"ownerId {MoLibrary.sqlDataType[typeof(uint)]}, ");
+            strCommand.Append($"itemName {MoLibrary.sqlDataType[typeof(string)]}, ");
+            strCommand.Append($"itemLink {MoLibrary.sqlDataType[typeof(string)]}, ");
+            strCommand.Append($"itemPrice {MoLibrary.sqlDataType[typeof(double)]}, ");
+            strCommand.Append($"quantity {MoLibrary.sqlDataType[typeof(uint)]}, ");
+            strCommand.Append($")");
+            var cmdTableMerch = new SqlCommand(strCommand.ToString());
+            sqlCommands.Add(cmdTableMerch);
+            //-+-+-+-+-+-+-+-+
+
+            strCommand.Clear();
+            strCommand.Append($"INSERT INTO {sqlTableName}");
+            strCommand.Append($"(cartName, ownerId, cartDateStart, cartDatePlan, cartDateEnd, costShipping) ");
+            strCommand.Append($"VALUES ");
+            strCommand.Append($"(@cartName, @ownerId, @cartDateStart, @cartDatePlan, @cartDateEnd, @costShipping) ");
+            SqlCommand cmdCart = new SqlCommand(strCommand.ToString());
+            cmdCart.Parameters.AddWithValue("@cartName", cartName);
+            cmdCart.Parameters.AddWithValue("@ownerId", cartOwner.uDex);
+            cmdCart.Parameters.AddWithValue("@cartDateStart", cartDateStart.ToSqlDate());
+            cmdCart.Parameters.AddWithValue("@cartDatePlan", cartDatePlan.ToSqlDate());
+            cmdCart.Parameters.AddWithValue("@cartDateEnd", cartDateEnd.ToSqlDate());
+            cmdCart.Parameters.AddWithValue("@costShipping", costShipping);
+            sqlCommands.Add(cmdCart);
+
+            strCommand.Clear();
+            strCommand.Append($"INSERT INTO {sqlTableNameCartItems}");
+            strCommand.Append($"(cartId, ownerId, itemName, itemLink, itemPrice, quantity) ");
+            strCommand.Append($"VALUES ");
+            strCommand.Append($"(@cartId, @ownerId, @itemName, @itemLink, @itemPrice, @quantity) ");
+            foreach (var kvp in cartItems)
+            {
+                Simp simp = kvp.Key;
+                foreach (var list in kvp.Value)
+                {
+                    Item item = list.Key;
+                    uint quantity = list.Value;
+
+                    SqlCommand cmdItem = new SqlCommand(strCommand.ToString());
+                    cmdItem.Parameters.AddWithValue("@cartId", uDex);
+                    cmdItem.Parameters.AddWithValue("@ownerId", simp.uDex);
+                    cmdItem.Parameters.AddWithValue("@itemName", item.name);
+                    cmdItem.Parameters.AddWithValue("@itemLink", item.link);
+                    cmdItem.Parameters.AddWithValue("@itemPrice", item.priceSGD);
+                    cmdItem.Parameters.AddWithValue("@quantity", quantity);
+                    sqlCommands.Add(cmdItem);
+                }
+            }
+        }
+        public static void Deserialize(IDataReader reader)
+        {
+            Cart cart = new Cart(
+                cartName: reader.GetCastedValueOrDefault("cartName", string.Empty),
+                cartOwner: Simp.GetSimp(reader.GetCastedValueOrDefault("ownerId", uint.MaxValue)),
+                cartDateStart: reader.GetCastedValueOrDefault("cartDateStart", DateTime.Now),
+                cartDatePlan: reader.GetCastedValueOrDefault("cartDatePlan", DateTime.Now.AddDays(Consts.defaultCartPlan))
+                );
+
+            DateTime cartDateEnd = reader.GetCastedValueOrDefault("cartDateEnd", DateTime.Now.AddTicks(-1));
+            double shippingCost = reader.GetCastedValueOrDefault("shippingCost", 0.0);
+
+            if (cartDateEnd >= cart.cartDateStart)
+                cart.closeCart(cartDateEnd);
+            cart.setShippingCost(shippingCost);
+        }
+        public static void DeserializeCartItems(IDataReader reader)
+        {
+            uint cartId = reader.GetCastedValueOrDefault("cartId", uint.MaxValue);
+            Simp simp = Simp.GetSimp(reader.GetCastedValueOrDefault("ownerId", uint.MaxValue));
+            Item item = new(
+                name: reader.GetCastedValueOrDefault("itemName", string.Empty),
+                link: reader.GetCastedValueOrDefault("itemLink", string.Empty),
+                priceSGD: reader.GetCastedValueOrDefault("itemPrice", 0.0)
+                );
+            uint quantity = reader.GetCastedValueOrDefault("quantity", 1u);
+            uDexCarts[cartId].addItem(simp, item, quantity);
+        }
+        public static void DeserializeAll(SqlConnection connection)
+        {
+            SqlCommand cmd;
+            cmd = new SqlCommand($"SELECT * FROM {sqlTableName}", connection);
+            using (var reader = cmd.ExecuteReader())
+                while (reader.Read())
+                    Deserialize(reader);
+
+            cmd = new SqlCommand($"SELECT * FROM {sqlTableNameCartItems}", connection);
+            using (var reader = cmd.ExecuteReader())
+                while (reader.Read())
+                    DeserializeCartItems(reader);
+        }
+        #endregion
     }
 }

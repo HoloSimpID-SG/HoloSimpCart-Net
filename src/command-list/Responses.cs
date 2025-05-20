@@ -1,9 +1,8 @@
 ﻿using Discord.WebSocket;
-using RuTakingTooLong.src.library;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
+using System.Text;
 
 namespace HoloSimpID
 {
@@ -182,6 +181,30 @@ namespace HoloSimpID
                     }
 
                     command.RespondAsync($"{userName} added {itemName} to {cart}");
+                }
+            },
+
+            //-+-+-+-+-+-+-+-+
+            // List All Carts
+            //-+-+-+-+-+-+-+-+
+            { "list-all-carts",
+                command => {
+                    var parameters = MoLibrary.ReadCommandParameter(command);
+
+                    string userName = command.User.Username;
+                    bool onlyOpen = parameters.GetCastedValueOrDefault("only-open-carts", x => Convert.ToBoolean(x), false);
+
+
+                    StringBuilder strResult = new();
+                    List<Cart> cartList = new();
+                    if (onlyOpen)
+                        Cart.GetAllCarts(cartList, (i, list) => list[i].stillOpen);
+                    else
+                        Cart.GetAllCarts(cartList);
+                    foreach(Cart cart in cartList)
+                        strResult.AppendLine(cart.getDetails());
+
+                    command.RespondAsync($"{strResult}");
                 }
             },
         }.ToImmutableDictionary();

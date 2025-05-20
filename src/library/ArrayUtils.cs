@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace RuTakingTooLong.src.library
+namespace HoloSimpID
 {
     public static partial class MoLibrary
     {
@@ -14,6 +14,13 @@ namespace RuTakingTooLong.src.library
                 valueFreqMap[value] = lastCount + freq;
             else
                 valueFreqMap.Add(value, freq);
+        }
+        public static void AddFrequency<T>(this IDictionary<T, uint> valueFreqMap, KeyValuePair<T, uint> valueFreqPair)
+        {
+            if (valueFreqMap.TryGetValue(valueFreqPair.Key, out uint lastCount))
+                valueFreqMap[valueFreqPair.Key] = lastCount + valueFreqPair.Value;
+            else
+                valueFreqMap.Add(valueFreqPair);
         }
         public static TValue GetValueOrDefault<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue = default)
         {

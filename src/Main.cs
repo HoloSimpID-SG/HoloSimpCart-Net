@@ -4,6 +4,8 @@ using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Threading.Tasks;
 
 namespace HoloSimpID
@@ -12,6 +14,7 @@ namespace HoloSimpID
     {
         private static string DiscordToken => TokenHolder.DiscordToken;
         private static ulong GuildId => TokenHolder.GuildId;
+        private const string SqlConnection = "Server=localhost\\SQLEXPRESS;Database=CartBotDB;Trusted_Connection=True;";
 
         //-+-+-+-+-+-+-+-+
         // Discord Component
@@ -21,6 +24,7 @@ namespace HoloSimpID
 
         public static async Task Main()
         {
+
             Client = new DiscordSocketClient();
             Commands = new CommandService();
 
@@ -32,6 +36,11 @@ namespace HoloSimpID
             client.SlashCommandExecuted += SlashCommandHandler;
 
             //-+-+-+-+-+-+-+-+
+            // Load Database
+            //-+-+-+-+-+-+-+-+
+            await LoadDB();
+
+            //-+-+-+-+-+-+-+-+
             // Start
             //-+-+-+-+-+-+-+-+
             await Client.LoginAsync(TokenType.Bot, DiscordToken);
@@ -39,6 +48,57 @@ namespace HoloSimpID
 
             // Block this task until the program is closed.
             await Task.Delay(-1);
+            await SaveDB();
+        }
+
+        public static async Task LoadDB()
+        {
+            using (var connection = new SqlConnection(SqlConnection))
+            {
+                await connection.OpenAsync();
+
+                try
+                {
+                    Simp.DeserializeAll(connection);
+                    Cart.DeserializeAll(connection);
+                    Console.WriteLine("Database Loaded Succesfully, HUMU");
+                }
+                catch
+                {
+                    // DO NOTHING, this is the first time running the bot
+                }
+            }
+        }
+
+        public static async Task SaveDB()
+        {
+            List<SqlCommand> sqlCommands = new();
+            sqlCommands.AddRange(Simp.SerializeAll());
+            sqlCommands.AddRange(Cart.SerializeAll());
+
+            using (var connection = new SqlConnection(SqlConnection))
+            {
+                await connection.OpenAsync();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        foreach (var cmd in sqlCommands)
+                        {
+                            cmd.Connection = connection;
+                            cmd.Transaction = transaction;
+                            await cmd.ExecuteNonQueryAsync();
+                        }
+                        transaction.Commit();
+                        Console.WriteLine("Database Updated Successfully, HUMU");
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        Console.WriteLine("Error updating Database: " + ex.Message);
+                    }
+                }
+            }
         }
 
         public static async Task ClientReady()

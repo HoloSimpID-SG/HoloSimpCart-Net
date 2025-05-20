@@ -71,6 +71,15 @@ namespace HoloSimpID
                 .AddOption("item-price", ApplicationCommandOptionType.Number, "Where's my Hina, Gio", isRequired: false)
                 .AddOption("quantity", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", isRequired: false)
                 ,
+            
+            //-+-+-+-+-+-+-+-+
+            // List All Carts
+            //-+-+-+-+-+-+-+-+
+            new SlashCommandBuilder()
+                .WithName("list-all-carts")
+                .WithDescription("Where's my Hina, Gio")
+                .AddOption("only-open-carts", ApplicationCommandOptionType.Boolean, "Where's my Hina, Gio", isRequired: true)
+                ,
         };
     }
 }
