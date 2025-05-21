@@ -2,11 +2,8 @@
 using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
+using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Threading.Tasks;
 
 namespace HoloSimpID
 {
@@ -14,17 +11,18 @@ namespace HoloSimpID
     {
         private static string DiscordToken => TokenHolder.DiscordToken;
         private static ulong GuildId => TokenHolder.GuildId;
-        private const string SqlConnection = "Server=localhost\\SQLEXPRESS;Database=CartBotDB;Trusted_Connection=True;";
+        private static string SqlConnection => TokenHolder.SqlConnection;
 
         //-+-+-+-+-+-+-+-+
         // Discord Component
         //-+-+-+-+-+-+-+-+
         private static DiscordSocketClient Client; public static DiscordSocketClient client => Client;
         private static CommandService Commands; public static CommandService commands => Commands;
+        private static SqlConnection Connection; public static SqlConnection connection => Connection;
 
         public static async Task Main()
         {
-
+            //Connection = new SqlConnection(SqlConnection);
             Client = new DiscordSocketClient();
             Commands = new CommandService();
 
@@ -38,7 +36,7 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             // Load Database
             //-+-+-+-+-+-+-+-+
-            await LoadDB();
+            //await LoadDB();
 
             //-+-+-+-+-+-+-+-+
             // Start
@@ -48,7 +46,7 @@ namespace HoloSimpID
 
             // Block this task until the program is closed.
             await Task.Delay(-1);
-            await SaveDB();
+            //await SaveDB();
         }
 
         public static async Task LoadDB()

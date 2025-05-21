@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Text;
 
@@ -166,7 +166,7 @@ namespace HoloSimpID
                 Simp simp = kvp.Key;
                 strResult.AppendLine($" - {simp}:");
                 foreach (var itemQuantityPair in kvp.Value)
-                    strResult.AppendLine($"  - {itemQuantityPair.Key.name} ({itemQuantityPair.Key.priceSGD:C2}) {Consts.cMultiply}{itemQuantityPair.Value}");
+                    strResult.AppendLine($"  - {itemQuantityPair.Key.itemName} ({itemQuantityPair.Key.priceSGD:C2}) {Consts.cMultiply}{itemQuantityPair.Value}");
             }
             return strResult.ToString();
         }
@@ -272,8 +272,8 @@ namespace HoloSimpID
                     SqlCommand cmdItem = new SqlCommand(strCommand.ToString());
                     cmdItem.Parameters.AddWithValue("@cartId", uDex);
                     cmdItem.Parameters.AddWithValue("@ownerId", simp.uDex);
-                    cmdItem.Parameters.AddWithValue("@itemName", item.name);
-                    cmdItem.Parameters.AddWithValue("@itemLink", item.link);
+                    cmdItem.Parameters.AddWithValue("@itemName", item.itemName);
+                    cmdItem.Parameters.AddWithValue("@itemLink", item.itemLink);
                     cmdItem.Parameters.AddWithValue("@itemPrice", item.priceSGD);
                     cmdItem.Parameters.AddWithValue("@quantity", quantity);
                     sqlCommands.Add(cmdItem);
@@ -301,8 +301,8 @@ namespace HoloSimpID
             uint cartId = reader.GetCastedValueOrDefault("cartId", uint.MaxValue);
             Simp simp = Simp.GetSimp(reader.GetCastedValueOrDefault("ownerId", uint.MaxValue));
             Item item = new(
-                name: reader.GetCastedValueOrDefault("itemName", string.Empty),
-                link: reader.GetCastedValueOrDefault("itemLink", string.Empty),
+                itemName: reader.GetCastedValueOrDefault("itemName", string.Empty),
+                itemLink: reader.GetCastedValueOrDefault("itemLink", string.Empty),
                 priceSGD: reader.GetCastedValueOrDefault("itemPrice", 0.0)
                 );
             uint quantity = reader.GetCastedValueOrDefault("quantity", 1u);
