@@ -214,8 +214,7 @@ namespace HoloSimpID
             // Create Table if not exists
             //-+-+-+-+-+-+-+-+
             sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartName));
-            uint ownerId = cartOwner.uDex;
-            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, ownerId));
+            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartOwner.uDex, "cartOwnerId"));
             sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartDateStart));
             sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartDatePlan));
             sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartDateEnd));
