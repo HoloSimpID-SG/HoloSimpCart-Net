@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Data.SqlClient;
 using System.Data;
-using Microsoft.Data.SqlClient;
-using System.Linq;
 using System.Text;
 
 namespace HoloSimpID
@@ -216,18 +213,14 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             // Create Table if not exists
             //-+-+-+-+-+-+-+-+
-            strCommand.Clear();
-            strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableName}");
-            strCommand.Append($"(");
-            strCommand.Append($"cartName {MoLibrary.sqlDataType[typeof(string)]}, ");
-            strCommand.Append($"ownerId {MoLibrary.sqlDataType[typeof(uint)]}, ");
-            strCommand.Append($"cartDateStart {MoLibrary.sqlDataType[typeof(string)]}, ");
-            strCommand.Append($"cartDatePlan {MoLibrary.sqlDataType[typeof(string)]}, ");
-            strCommand.Append($"cartDateEnd {MoLibrary.sqlDataType[typeof(string)]}, ");
-            strCommand.Append($"costShipping {MoLibrary.sqlDataType[typeof(double)]}, ");
-            strCommand.Append($")");
-            var cmdTable = new SqlCommand(strCommand.ToString());
-            sqlCommands.Add(cmdTable);
+            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartName));
+            uint ownerId = cartOwner.uDex;
+            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, ownerId));
+            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartDateStart));
+            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartDatePlan));
+            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartDateEnd));
+            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, costShipping));
+
             strCommand.Clear();
             strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableNameCartItems}");
             strCommand.Append($"(");

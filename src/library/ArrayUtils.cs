@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-
-namespace HoloSimpID
+﻿namespace HoloSimpID
 {
     public static partial class MoLibrary
     {
@@ -43,5 +39,11 @@ namespace HoloSimpID
             GetCastedValueOrDefault(dictionary, key, x => Convert.ToInt32(x), defaultValue);
         public static double GetCastedValueOrDefault<TKey>(this IDictionary<TKey, object> dictionary, TKey key, double defaultValue = default) =>
             GetCastedValueOrDefault(dictionary, key, x => Convert.ToDouble(x), defaultValue);
+
+        public static void AddRange<T>(this IList<T> list, IList<T> range)
+        {
+            foreach(T data in range)
+                list.Add(data);
+        }
     }
-    }
+}

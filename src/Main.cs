@@ -16,15 +16,15 @@ namespace HoloSimpID
         //-+-+-+-+-+-+-+-+
         // Discord Component
         //-+-+-+-+-+-+-+-+
-        private static DiscordSocketClient Client; public static DiscordSocketClient client => Client;
-        private static CommandService Commands; public static CommandService commands => Commands;
-        private static SqlConnection Connection; public static SqlConnection connection => Connection;
+        public static DiscordSocketClient client { get; private set; }
+        public static CommandService commands { get; private set; }
+        public static SqlConnection connection { get; private set; }
 
         public static async Task Main()
         {
-            //Connection = new SqlConnection(SqlConnection);
-            Client = new DiscordSocketClient();
-            Commands = new CommandService();
+            //connection = new SqlConnection(SqlConnection);
+            client = new DiscordSocketClient();
+            commands = new CommandService();
 
             //-+-+-+-+-+-+-+-+
             // Logging
@@ -41,8 +41,8 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             // Start
             //-+-+-+-+-+-+-+-+
-            await Client.LoginAsync(TokenType.Bot, DiscordToken);
-            await Client.StartAsync();
+            await client.LoginAsync(TokenType.Bot, DiscordToken);
+            await client.StartAsync();
 
             // Block this task until the program is closed.
             await Task.Delay(-1);
@@ -105,8 +105,8 @@ namespace HoloSimpID
 
             //-+-+-+-+-+-+-+-+
             // Clear Commands
-            // .. if not, it will retain already deleted commands
-            // .. or fail to update with new logic
+            // ..if not, it will retain already deleted commands
+            // ..or fail to update with new logic
             //-+-+-+-+-+-+-+-+
             //await client.Rest.DeleteAllGlobalCommandsAsync();
             //await guild.DeleteApplicationCommandsAsync();
