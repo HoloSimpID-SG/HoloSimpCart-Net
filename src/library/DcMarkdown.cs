@@ -7,10 +7,10 @@ namespace HoloSimpID
 {
     public static partial class MoLibrary
     {
-        public static string Header1(this string text) => $"# {text}";
-        public static string Header2(this string text) => $"## {text}";
-        public static string Header3(this string text) => $"### {text}";
-        public static string SubText(this string text) => $"-# {text}";
+        public static string Header1(this string text) => $"# {text}\n";
+        public static string Header2(this string text) => $"## {text}\n";
+        public static string Header3(this string text) => $"### {text}\n";
+        public static string SubText(this string text) => $"-# {text}\n";
         public static string Bold(this string text) => $"**{text}**";
         public static string Italic(this string text) => $"*{text}*";
         public static string Underline(this string text) => $"__{text}__";

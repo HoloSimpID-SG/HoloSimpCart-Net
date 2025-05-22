@@ -5,3 +5,6 @@ dotnet_diagnostic.IDE0032.severity = none
 
 # IDE0032: Use auto property
 dotnet_style_prefer_auto_properties = false
+
+# IDE1006: Naming Styles
+dotnet_diagnostic.IDE1006.severity = none

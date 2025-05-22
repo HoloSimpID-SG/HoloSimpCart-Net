@@ -107,7 +107,7 @@ namespace HoloSimpID
             predicate ??= (i, l) => l[i] != null;
             int len = uDexCarts.Count;
             for (uint i = 0; i < len; i++)
-                if (!predicate(i, uDexCarts)) carts.Add(uDexCarts[i]);
+                if (predicate(i, uDexCarts)) carts.Add(uDexCarts[i]);
         }
         /// <summary>
         /// <inheritdoc cref="GetAllCarts"/>
@@ -153,17 +153,17 @@ namespace HoloSimpID
         {
             StringBuilder strResult = new();
             strResult.AppendLine($"# {cartName} (id: {uDex})");
-            strResult.AppendLine($"- Owned by: {cartOwner.simpName}");
-            strResult.Append($"- Status: ");
+            strResult.AppendLine($"Owned by: {cartOwner.simpName}");
+            strResult.Append($"Status: ");
             strResult.AppendLine(stillOpen ? $"Open" : "Closed");
-            strResult.AppendLine($"- Opened at: {cartDateStart}");
-            strResult.AppendLine($"- Item List:");
+            strResult.AppendLine($"Opened at: {cartDateStart}");
+            strResult.AppendLine($"Item List:");
             foreach (var kvp in cartItems)
             {
                 Simp simp = kvp.Key;
-                strResult.AppendLine($" - {simp}:");
+                strResult.AppendLine($"- {simp}:");
                 foreach (var itemQuantityPair in kvp.Value)
-                    strResult.AppendLine($"  - {itemQuantityPair.Key.itemName} ({itemQuantityPair.Key.priceSGD:C2}) {Consts.cMultiply}{itemQuantityPair.Value}");
+                    strResult.AppendLine($"  - {itemQuantityPair.Key} ({itemQuantityPair.Key.priceSGD:C2}) {Consts.cMultiply}{itemQuantityPair.Value}");
             }
             return strResult.ToString();
         }

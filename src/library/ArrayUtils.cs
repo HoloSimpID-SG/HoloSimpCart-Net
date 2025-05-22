@@ -14,7 +14,7 @@
         //-+-+-+-+-+-+-+
         // Freuency Map
         //-+-+-+-+-+-+-+
-        #region Get Casted Value or Default
+        #region Frequency Map
         /// <summary>
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// <br/> - Adds <see cref="Dictionary{TKey, TValue}.Values"/> of <paramref name="valueFreqMap"/> by <paramref name="freq"/>, if it has <paramref name="value"/> as <see cref="Dictionary{TKey, TValue}.Keys"/>.
@@ -51,7 +51,7 @@
         /// <br/> - Converts a Frequency Map to a <see cref="List{T}"/>.
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// </summary>
-        public static List<T> toList<T>(this IDictionary<T, uint> valueFreqMap)
+        public static List<T> toList<T>(this IDictionary<T, uint> valueFreqMap) where T : notnull
         {
             List<T> list = new();
             foreach(var kvp in valueFreqMap)
@@ -63,10 +63,18 @@
         /// <br/> - Converts an <see cref="IEnumerable{T}{T}"/> to a Frequency Map.
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// </summary>
-        public static Dictionary<T, uint> toFrequencyMap<T>(this IEnumerable<T> list)
+        public static void toFrequencyMap<T>(Dictionary<T, uint> valueFreqMap, IEnumerable<T> list) where T : notnull
+        {
+            foreach (T value in list)
+                valueFreqMap.AddFrequency(value);
+        }
+        /// <summary>
+        /// <inheritdoc cref="toFrequencyMap{T}(Dictionary{T, uint}, IEnumerable{T})"/>
+        /// </summary>
+        public static Dictionary<T, uint> toFrequencyMap<T>(this IEnumerable<T> list) where T : notnull
         {
             Dictionary<T, uint> valueFreqMap = new();
-            valueFreqMap.toFrequencyMap(list);
+            toFrequencyMap(valueFreqMap, list);
             return valueFreqMap;
         }
         #endregion

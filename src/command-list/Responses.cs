@@ -194,13 +194,19 @@ namespace HoloSimpID
                     string userName = command.User.Username;
                     bool onlyOpen = parameters.GetCastedValueOrDefault("only-open-carts", x => Convert.ToBoolean(x), false);
 
-
                     StringBuilder strResult = new();
                     List<Cart> cartList = new();
                     if (onlyOpen)
                         Cart.GetAllCarts(cartList, (i, list) => list[i].stillOpen);
                     else
                         Cart.GetAllCarts(cartList);
+
+                    if (cartList.IsNullOrEmpty())
+                    {
+                        command.RespondAsync($"No Cart detected, what a cheapskate group");
+                        return;
+                    }
+
                     foreach(Cart cart in cartList)
                         strResult.AppendLine(cart.getDetails());
 

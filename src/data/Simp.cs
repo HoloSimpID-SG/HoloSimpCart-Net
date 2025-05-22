@@ -68,7 +68,7 @@ namespace HoloSimpID
         /// </summary>
         public static Simp GetSimp(string simpName)
         {
-            var simps = uDexSimps.Where(x => x.Value.simpName == simpName).Select(x => x.Value);
+            var simps = uDexSimps.Where(x => x.Value.dcUserName == simpName).Select(x => x.Value);
             if (simps.IsNullOrEmpty())
                 return null;
             else

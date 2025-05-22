@@ -18,7 +18,7 @@ namespace HoloSimpID
         //-+-+-+-+-+-+-+-+
         public static DiscordSocketClient client { get; private set; }
         public static CommandService commands { get; private set; }
-        public static SqlConnection connection { get; private set; }
+        public static SqlConnection sqlConnection { get; private set; }
 
         public static async Task Main()
         {
@@ -51,14 +51,14 @@ namespace HoloSimpID
 
         public static async Task LoadDB()
         {
-            using (var connection = new SqlConnection(SqlConnection))
+            using (sqlConnection)
             {
-                await connection.OpenAsync();
+                await sqlConnection.OpenAsync();
 
                 try
                 {
-                    Simp.DeserializeAll(connection);
-                    Cart.DeserializeAll(connection);
+                    Simp.DeserializeAll(sqlConnection);
+                    Cart.DeserializeAll(sqlConnection);
                     Console.WriteLine("Database Loaded Succesfully, HUMU");
                 }
                 catch
@@ -74,16 +74,16 @@ namespace HoloSimpID
             sqlCommands.AddRange(Simp.SerializeAll());
             sqlCommands.AddRange(Cart.SerializeAll());
 
-            using (var connection = new SqlConnection(SqlConnection))
+            using (sqlConnection)
             {
-                await connection.OpenAsync();
-                using (var transaction = connection.BeginTransaction())
+                await sqlConnection.OpenAsync();
+                using (var transaction = sqlConnection.BeginTransaction())
                 {
                     try
                     {
                         foreach (var cmd in sqlCommands)
                         {
-                            cmd.Connection = connection;
+                            cmd.Connection = sqlConnection;
                             cmd.Transaction = transaction;
                             await cmd.ExecuteNonQueryAsync();
                         }
@@ -137,7 +137,16 @@ namespace HoloSimpID
             foreach (var respond in CommandConsts.responses)
             {
                 if (command.Data.Name == respond.Key)
-                    await Task.Run(() => respond.Value(command));
+                    try
+                    {
+                        await Task.Run(() => respond.Value(command));
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Error: ");
+                        Console.WriteLine($" {e.Message}");
+                        Console.WriteLine($"  {e.StackTrace}");
+                    }
             }
         }
 
