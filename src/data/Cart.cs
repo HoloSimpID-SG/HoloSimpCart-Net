@@ -34,7 +34,7 @@ namespace HoloSimpID
         //-+-+-+-+-+-+-+-+
         // Indexer
         //-+-+-+-+-+-+-+-+
-        private readonly Dictionary<Simp, Dictionary<Item, uint>> cartItems;
+        public Dictionary<Simp, Dictionary<Item, uint>> cartItems { get; private set; }
         public double costShipping => CostShipping; private double CostShipping;
 
         public Cart(string cartName, Simp cartOwner, DateTime? cartDateStart = null, DateTime? cartDatePlan = null)

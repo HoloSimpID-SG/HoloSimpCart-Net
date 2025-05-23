@@ -80,6 +80,12 @@ namespace HoloSimpID
                 .WithDescription("Where's my Hina, Gio")
                 .AddOption("only-open-carts", ApplicationCommandOptionType.Boolean, "Where's my Hina, Gio", isRequired: true)
                 ,
+
+            new SlashCommandBuilder()
+                .WithName("get-cart-stats-by-id")
+                .WithDescription("Where's my Hina, Gio")
+                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", isRequired: true)
+                ,
         };
     }
 }
