@@ -1,4 +1,5 @@
-﻿using Discord;
+﻿using Azure;
+using Discord;
 using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
@@ -102,6 +103,39 @@ namespace HoloSimpID
         public static async Task ClientReady()
         {
             var guild = client.GetGuild(GuildId);
+
+            //-+-+-+-+-+-+-+-+
+            // Commands Validation
+            // ..so that you buffons don't forget :ayamewheeze:
+            //-+-+-+-+-+-+-+-+
+            bool isValid = true;
+            Console.WriteLine();
+            Console.WriteLine($"Running Command Validation.");
+            foreach (var command in CommandConsts.commands)
+            {
+                if(CommandConsts.responses.ContainsKey(command.Name))
+                    continue;
+                else
+                {
+                    isValid = false;
+                    Console.WriteLine($"Command: {command.Name}, does not have a response.");
+                }
+            }
+            foreach (var respond in CommandConsts.responses)
+            {
+                if (CommandConsts.commands.Any(x => x.Name == respond.Key))
+                    continue;
+                else
+                {
+                    isValid = false;
+                    Console.WriteLine($"Response: {respond.Key}, does not have a command.");
+                }
+            }
+            if (!isValid)
+            {
+                throw new Exception("Commands and Responses are not in sync Haiyahhh.");
+                Console.WriteLine();
+            }
 
             //-+-+-+-+-+-+-+-+
             // Clear Commands
