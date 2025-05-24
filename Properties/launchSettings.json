@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "RuTakingTooLong": {
+      "commandName": "Project",
+      "hotReloadEnabled": false
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}

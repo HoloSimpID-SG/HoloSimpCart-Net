@@ -10,9 +10,9 @@ namespace HoloSimpID
 {
     public class CartBot
     {
-        private static string DiscordToken => TokenHolder.DiscordToken;
-        private static ulong GuildId => TokenHolder.GuildId;
-        private static string SqlConnection => TokenHolder.SqlConnection;
+        private static string DiscordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+        private static ulong GuildId = ulong.Parse(Environment.GetEnvironmentVariable("GUILD_ID"));
+        private static string SqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION");
 
         //-+-+-+-+-+-+-+-+
         // Discord Component

@@ -1,0 +1,23 @@
+# .dockerignore
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+.idea/
+*.log
+*.db
+*.mdf
+*.ldf
+*.pdb
+*.vscode/
+.env
+.git
+.gitignore
+Dockerfile
+docker-compose*
+README.md
+LICENSE
+*.md
