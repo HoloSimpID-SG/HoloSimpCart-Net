@@ -142,8 +142,8 @@ namespace HoloSimpID
             // ..if not, it will retain already deleted commands
             // ..or fail to update with new logic
             //-+-+-+-+-+-+-+-+
-            //await client.Rest.DeleteAllGlobalCommandsAsync();
-            //await guild.DeleteApplicationCommandsAsync();
+            await client.Rest.DeleteAllGlobalCommandsAsync();
+            await guild.DeleteApplicationCommandsAsync();
 
             //-+-+-+-+-+-+-+-+
             foreach (var command in CommandConsts.commands)
