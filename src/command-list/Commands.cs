@@ -91,7 +91,7 @@ namespace HoloSimpID
             // Very Important Codes Below
             //-+-+-+-+-+-+-+-+
             new SlashCommandBuilder()
-                .WithName("")
+                .WithName("bau-bau")
                 .WithDescription("bau-baumogojyan what are you doing?")
                 .AddOption("times", ApplicationCommandOptionType.Integer, "Bau Bau Meter", isRequired: true)
                 ,
