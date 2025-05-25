@@ -5,6 +5,7 @@ using Discord.Net;
 using Discord.WebSocket;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
+using System;
 
 namespace HoloSimpID
 {
@@ -46,6 +47,13 @@ namespace HoloSimpID
             await client.StartAsync();
 
             // Block this task until the program is closed.
+            AppDomain.CurrentDomain.ProcessExit += async (s, e) =>
+            {
+                var guild = client.GetGuild(GuildId);
+                var channel = guild.GetThreadChannel(1361336661274788085);
+                await channel.SendMessageAsync("Hina, Nemui");
+            };
+
             await Task.Delay(-1);
             //await SaveDB();
         }
@@ -164,6 +172,8 @@ namespace HoloSimpID
                     Console.WriteLine($"Something Broke, idk... this is the first time I am making a bot. Here's the message:\n{e.Message}\nGo Figure or Go Vibe.");
                 }
             }
+            var channel = guild.GetThreadChannel(1361336661274788085);
+            await channel.SendMessageAsync("Hina, ready to serve.");
         }
 
         private static async Task SlashCommandHandler(SocketSlashCommand command)

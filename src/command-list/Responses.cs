@@ -281,15 +281,52 @@ namespace HoloSimpID
                 command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
-                    int baubaumeter = parameters.GetCastedValueOrDefault("times", 1);
+                    int baubaumeter = 1;
+                    try
+                    {
+                        baubaumeter = parameters.GetCastedValueOrDefault("times", 1);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error when reading baubaumeter");
+                        Console.WriteLine(ex.Message);
+                        Console.WriteLine(ex.StackTrace);
+                    }
 
                     StringBuilder strResult = new();
-                    strResult.Append("# ");
-                    string phrase = "bau bau ";
-                    for(int i = 0; i < baubaumeter; i++)
-                        strResult.Append("bau bau ");
+                    try
+                    {
+                        strResult.Append("# ");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error when trying to append Markdown");
+                        Console.WriteLine(ex.Message);
+                        Console.WriteLine(ex.StackTrace);
+                    }
+                    try
+                    {
+                        string phrase = "bau bau ";
+                        for(int i = 0; i < baubaumeter; i++)
+                            strResult.Append("bau bau ");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error when building baubaus");
+                        Console.WriteLine(ex.Message);
+                        Console.WriteLine(ex.StackTrace);
+                    }
 
-                    command.RespondAsync(strResult.ToString());
+                    try
+                    {
+                        command.RespondAsync(strResult.ToString());
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error sending response");
+                        Console.WriteLine(ex.Message);
+                        Console.WriteLine(ex.StackTrace);
+                    }
                 }
             },
         }.ToImmutableDictionary();
