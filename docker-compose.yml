@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: hinaCart
+      POSTGRES_PASSWORD: hinaCart
+      POSTGRES_DB: dbHoloSimpIDCart
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  app:
+    build: .
+    depends_on:
+      - db
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      GUILD_ID: ${GUILD_ID}
+      THREAD_ID: ${THREAD_ID}
+      SQL_CONNECTION: Host=db;Port=5432;Username=hinaCart;Password=hinaCart;Database=dbHoloSimpIDCart
+
+volumes:
+  db_data:

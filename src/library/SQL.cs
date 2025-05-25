@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Npgsql;
 using System.Collections.Immutable;
 using System.Data;
 using System.Globalization;
@@ -9,8 +9,8 @@ namespace HoloSimpID
 {
     public static partial class MoLibrary
     {
-        public static string ToSqlString(this string str) => '\'' + str.Replace("'", "''") + '\'';
-        public static string ToSqlDate(this DateTime dateTime) => '\'' + $"{dateTime:o}" + '\'';
+        public static string ToNpgsqlString(this string str) => '\'' + str.Replace("'", "''") + '\'';
+        public static string ToNpgsqlDate(this DateTime dateTime) => '\'' + $"{dateTime:o}" + '\'';
 
         /// <summary>
         /// <inheritdoc cref="GetCastedValueOrDefault{TKey, TValue}(IDictionary{TKey, object}, TKey, Func{object, TValue}, TValue)"/>
@@ -60,7 +60,7 @@ namespace HoloSimpID
         public const string sqlIndex = "uDex";
         /// <summary>
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-        /// <br/> - Returns sets of <see cref="SqlCommand"/> for safely upserting <paramref name="data"/>.
+        /// <br/> - Returns sets of <see cref="NpgsqlCommand"/> for safely upserting <paramref name="data"/>.
         /// <br/> - Automatically creates the table and column if it does not exist.
         /// <br/> - Automatically interprets the column name and type from <paramref name="dataName"/>.
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -69,12 +69,12 @@ namespace HoloSimpID
         /// <br/> - This one will automatically takes the variable name of <paramref name="data"/>.
         /// <br/> - Fill this to override.
         /// </param>
-        public static List<SqlCommand> SafeUpsert(
+        public static List<NpgsqlCommand> SafeUpsert(
             string tableName, uint uDex,
             object data,
             [CallerArgumentExpression("data")] string dataName = null)
         {
-            List<SqlCommand> commands = new();
+            List<NpgsqlCommand> commands = new();
             StringBuilder strCommand = new();
 
             // Safe Conversion for DateTime
@@ -96,8 +96,8 @@ namespace HoloSimpID
             strCommand.AppendLine($@"    [{sqlIndex}] INT PRIMARY KEY");
             strCommand.AppendLine($@")");
             strCommand.AppendLine($@"END");
-            SqlCommand cmdCreateTable = new(strCommand.ToString());
-            cmdCreateTable.Parameters.Add(new SqlParameter("@tableName", tableName));
+            NpgsqlCommand cmdCreateTable = new(strCommand.ToString());
+            cmdCreateTable.Parameters.Add(new NpgsqlParameter("@tableName", tableName));
             commands.Add(cmdCreateTable);
 
             //-+-+-+-+-+-+-+-+
@@ -112,9 +112,9 @@ namespace HoloSimpID
             strCommand.AppendLine($@"BEGIN");
             strCommand.AppendLine($@"   ALTER TABLE [{tableName}] ADD [{dataName}] {sqlDataType[type]};");
             strCommand.AppendLine($@"END");
-            SqlCommand cmdAddCol = new(strCommand.ToString());
-            cmdAddCol.Parameters.Add(new SqlParameter("@tableName", tableName));
-            cmdAddCol.Parameters.Add(new SqlParameter("@columnName", dataName));
+            NpgsqlCommand cmdAddCol = new(strCommand.ToString());
+            cmdAddCol.Parameters.Add(new NpgsqlParameter("@tableName", tableName));
+            cmdAddCol.Parameters.Add(new NpgsqlParameter("@columnName", dataName));
             commands.Add(cmdAddCol);
 
             //-+-+-+-+-+-+-+-+
@@ -125,9 +125,9 @@ namespace HoloSimpID
             strCommand.AppendLine($@"   UPDATE [{tableName}] SET [{dataName}] = @data WHERE [{sqlIndex}] = @uDex");
             strCommand.AppendLine($@"ELSE");
             strCommand.AppendLine($@"   INSERT INTO [{tableName}] ([{sqlIndex}], [{dataName}]) VALUES (@uDex, @data)");
-            SqlCommand cmdAddData = new(strCommand.ToString());
-            cmdAddData.Parameters.Add(new SqlParameter("@uDex", uDex));
-            cmdAddData.Parameters.Add(new SqlParameter("@data", data ?? DBNull.Value));
+            NpgsqlCommand cmdAddData = new(strCommand.ToString());
+            cmdAddData.Parameters.Add(new NpgsqlParameter("@uDex", uDex));
+            cmdAddData.Parameters.Add(new NpgsqlParameter("@data", data ?? DBNull.Value));
             commands.Add(cmdAddData);
 
             return commands;

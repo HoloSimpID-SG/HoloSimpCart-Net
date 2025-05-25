@@ -1,12 +1,12 @@
-﻿using Azure;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
-using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
+using Npgsql;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Text;
 
 namespace HoloSimpID
@@ -16,7 +16,7 @@ namespace HoloSimpID
         private static string DiscordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
         private static ulong GuildId = ulong.Parse(Environment.GetEnvironmentVariable("GUILD_ID"));
         private static ulong ThreadId = ulong.Parse(Environment.GetEnvironmentVariable("THREAD_ID"));
-        private static string SqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION");
+        private static string NpgsqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION");
 
         //-+-+-+-+-+-+-+-+
         // Discord Component
@@ -25,13 +25,13 @@ namespace HoloSimpID
         public static SocketGuild guild { get; private set; }
         public static SocketThreadChannel threadTesting { get; private set; }
         public static CommandService commands { get; private set; }
-        public static SqlConnection sqlConnection { get; private set; }
+        public static NpgsqlConnection sqlConnection { get; private set; }
         public static CancellationTokenSource cancellationTokenSource { get; private set; } = new();
         public static CancellationToken cancellationToken => cancellationTokenSource.Token;
 
         public static async Task Main()
         {
-            //connection = new SqlConnection(SqlConnection);
+            sqlConnection = new NpgsqlConnection(NpgsqlConnection);
             client = new DiscordSocketClient();
             commands = new CommandService();
 
@@ -72,11 +72,11 @@ namespace HoloSimpID
             {
                 // Handle cancellation gracefully
                 await threadTesting.SendMessageAsync("Hina, Nemui");
+                await SaveDB();
 
                 await client.LogoutAsync();
                 await client.StopAsync();
             }
-            //await SaveDB();
         }
 
         public static async Task LoadDB()
@@ -91,8 +91,14 @@ namespace HoloSimpID
                     Cart.DeserializeAll(sqlConnection);
                     Console.WriteLine("Database Loaded Succesfully, HUMU");
                 }
-                catch
+                catch (Exception e)
                 {
+                    Console.WriteLine("Error Loading Database");
+                    StringBuilder strErr = new();
+                    strErr.AppendLine($"Error when performing command: ");
+                    strErr.AppendLine($" {e.Message}");
+                    strErr.AppendLine($"  {e.StackTrace}");
+                    Console.WriteLine(strErr);
                     // DO NOTHING, this is the first time running the bot
                 }
             }
@@ -100,7 +106,7 @@ namespace HoloSimpID
 
         public static async Task SaveDB()
         {
-            List<SqlCommand> sqlCommands = new();
+            List<NpgsqlCommand> sqlCommands = new();
             sqlCommands.AddRange(Simp.SerializeAll());
             sqlCommands.AddRange(Cart.SerializeAll());
 
@@ -224,6 +230,7 @@ namespace HoloSimpID
                 strErr.AppendLine($"Error when performing command: ");
                 strErr.AppendLine($" {e.Message}");
                 strErr.AppendLine($"  {e.StackTrace}");
+                Console.WriteLine(strErr);
             }
         }
 

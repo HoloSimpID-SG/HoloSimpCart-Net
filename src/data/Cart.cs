@@ -1,6 +1,6 @@
-﻿using Microsoft.Data.SqlClient;
-using System.Data;
+﻿using System.Data;
 using System.Text;
+using Npgsql;
 
 namespace HoloSimpID
 {
@@ -190,24 +190,24 @@ namespace HoloSimpID
         #region Database
         const string sqlTableName = "Carts";
         const string sqlTableNameCartItems = "CartItems";
-        public static List<SqlCommand> SerializeAll()
+        public static List<NpgsqlCommand> SerializeAll()
         {
-            List<SqlCommand> sqlCommands = new();
+            List<NpgsqlCommand> sqlCommands = new();
             SerializeAll(sqlCommands);
             return sqlCommands;
         }
-        public static void SerializeAll(IList<SqlCommand> sqlCommands)
+        public static void SerializeAll(IList<NpgsqlCommand> sqlCommands)
         {
             foreach (Cart cart in uDexCarts.Values)
                 cart.Serialize(sqlCommands);
         }
-        public List<SqlCommand> Serialize()
+        public List<NpgsqlCommand> Serialize()
         {
-            List<SqlCommand> sqlCommands = new();
+            List<NpgsqlCommand> sqlCommands = new();
             Serialize(sqlCommands);
             return sqlCommands;
         }
-        public void Serialize(IList<SqlCommand> sqlCommands)
+        public void Serialize(IList<NpgsqlCommand> sqlCommands)
         {
             StringBuilder strCommand = new();
             //-+-+-+-+-+-+-+-+
@@ -230,7 +230,7 @@ namespace HoloSimpID
             strCommand.Append($"itemPrice {MoLibrary.sqlDataType[typeof(double)]}, ");
             strCommand.Append($"quantity {MoLibrary.sqlDataType[typeof(uint)]}, ");
             strCommand.Append($")");
-            var cmdTableMerch = new SqlCommand(strCommand.ToString());
+            var cmdTableMerch = new NpgsqlCommand(strCommand.ToString());
             sqlCommands.Add(cmdTableMerch);
             //-+-+-+-+-+-+-+-+
 
@@ -239,12 +239,12 @@ namespace HoloSimpID
             strCommand.Append($"(cartName, ownerId, cartDateStart, cartDatePlan, cartDateEnd, costShipping) ");
             strCommand.Append($"VALUES ");
             strCommand.Append($"(@cartName, @ownerId, @cartDateStart, @cartDatePlan, @cartDateEnd, @costShipping) ");
-            SqlCommand cmdCart = new SqlCommand(strCommand.ToString());
+            NpgsqlCommand cmdCart = new NpgsqlCommand(strCommand.ToString());
             cmdCart.Parameters.AddWithValue("@cartName", cartName);
             cmdCart.Parameters.AddWithValue("@ownerId", cartOwner.uDex);
-            cmdCart.Parameters.AddWithValue("@cartDateStart", cartDateStart.ToSqlDate());
-            cmdCart.Parameters.AddWithValue("@cartDatePlan", cartDatePlan.ToSqlDate());
-            cmdCart.Parameters.AddWithValue("@cartDateEnd", cartDateEnd.ToSqlDate());
+            cmdCart.Parameters.AddWithValue("@cartDateStart", cartDateStart.ToNpgsqlDate());
+            cmdCart.Parameters.AddWithValue("@cartDatePlan", cartDatePlan.ToNpgsqlDate());
+            cmdCart.Parameters.AddWithValue("@cartDateEnd", cartDateEnd.ToNpgsqlDate());
             cmdCart.Parameters.AddWithValue("@costShipping", costShipping);
             sqlCommands.Add(cmdCart);
 
@@ -261,7 +261,7 @@ namespace HoloSimpID
                     Item item = list.Key;
                     uint quantity = list.Value;
 
-                    SqlCommand cmdItem = new SqlCommand(strCommand.ToString());
+                    NpgsqlCommand cmdItem = new NpgsqlCommand(strCommand.ToString());
                     cmdItem.Parameters.AddWithValue("@cartId", uDex);
                     cmdItem.Parameters.AddWithValue("@ownerId", simp.uDex);
                     cmdItem.Parameters.AddWithValue("@itemName", item.itemName);
@@ -300,15 +300,15 @@ namespace HoloSimpID
             uint quantity = reader.GetCastedValueOrDefault("quantity", 1u);
             uDexCarts[cartId].addItem(simp, item, quantity);
         }
-        public static void DeserializeAll(SqlConnection connection)
+        public static void DeserializeAll(NpgsqlConnection connection)
         {
-            SqlCommand cmd;
-            cmd = new SqlCommand($"SELECT * FROM {sqlTableName}", connection);
+            NpgsqlCommand cmd;
+            cmd = new NpgsqlCommand($"SELECT * FROM {sqlTableName}", connection);
             using (var reader = cmd.ExecuteReader())
                 while (reader.Read())
                     Deserialize(reader);
 
-            cmd = new SqlCommand($"SELECT * FROM {sqlTableNameCartItems}", connection);
+            cmd = new NpgsqlCommand($"SELECT * FROM {sqlTableNameCartItems}", connection);
             using (var reader = cmd.ExecuteReader())
                 while (reader.Read())
                     DeserializeCartItems(reader);

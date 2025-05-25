@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using System.Linq;
 using System.Text;
 
@@ -122,24 +122,24 @@ namespace HoloSimpID
         const string sqlTableName = "Simps";
         const string sqlTableNameSpendMerch = "SimpSpend";
         const string sqlTableNameSpendMisc = "SimpSpendMisc";
-        public static List<SqlCommand> SerializeAll()
+        public static List<NpgsqlCommand> SerializeAll()
         {
-            List<SqlCommand> sqlCommands = new();
+            List<NpgsqlCommand> sqlCommands = new();
             SerializeAll(sqlCommands);
             return sqlCommands;
         }
-        public static void SerializeAll(IList<SqlCommand> sqlCommands)
+        public static void SerializeAll(IList<NpgsqlCommand> sqlCommands)
         {
             foreach (Simp simp in uDexSimps.Values)
                 simp.Serialize(sqlCommands);
         }
-        public List<SqlCommand> Serialize()
+        public List<NpgsqlCommand> Serialize()
         {
-            List<SqlCommand> sqlCommands = new();
+            List<NpgsqlCommand> sqlCommands = new();
             Serialize(sqlCommands);
             return sqlCommands;
         }
-        public void Serialize(IList<SqlCommand> sqlCommands)
+        public void Serialize(IList<NpgsqlCommand> sqlCommands)
         {
             StringBuilder strCommand = new();
 
@@ -152,7 +152,7 @@ namespace HoloSimpID
             strCommand.Append($"dcUserName {MoLibrary.sqlDataType[typeof(string)]}, ");
             strCommand.Append($"simpName {MoLibrary.sqlDataType[typeof(string)]}, ");
             strCommand.Append($")");
-            var cmdTable = new SqlCommand(strCommand.ToString());
+            var cmdTable = new NpgsqlCommand(strCommand.ToString());
             sqlCommands.Add(cmdTable);
             strCommand.Clear();
             strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableNameSpendMerch}");
@@ -161,7 +161,7 @@ namespace HoloSimpID
             strCommand.Append($"value {MoLibrary.sqlDataType[typeof(double)]}, ");
             strCommand.Append($"frequency {MoLibrary.sqlDataType[typeof(uint)]}, ");
             strCommand.Append($")");
-            var cmdTableMerch = new SqlCommand(strCommand.ToString());
+            var cmdTableMerch = new NpgsqlCommand(strCommand.ToString());
             sqlCommands.Add(cmdTableMerch);
             strCommand.Clear();
             strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableNameSpendMisc}");
@@ -170,7 +170,7 @@ namespace HoloSimpID
             strCommand.Append($"value {MoLibrary.sqlDataType[typeof(double)]}, ");
             strCommand.Append($"frequency {MoLibrary.sqlDataType[typeof(uint)]}, ");
             strCommand.Append($")");
-            var cmdTableMisc = new SqlCommand(strCommand.ToString());
+            var cmdTableMisc = new NpgsqlCommand(strCommand.ToString());
             sqlCommands.Add(cmdTableMisc);
             //-+-+-+-+-+-+-+-+
 
@@ -179,7 +179,7 @@ namespace HoloSimpID
             strCommand.Append($"(dcUserName, simpName) ");
             strCommand.Append($"VALUES ");
             strCommand.Append($"(@dcUserName, @simpName) ");
-            var cmdSimp = new SqlCommand(strCommand.ToString());
+            var cmdSimp = new NpgsqlCommand(strCommand.ToString());
             cmdSimp.Parameters.AddWithValue("@dcUserName", dcUserName);
             cmdSimp.Parameters.AddWithValue("@simpName", simpName);
             sqlCommands.Add(cmdSimp);
@@ -195,7 +195,7 @@ namespace HoloSimpID
                 double value = kvp.Key;
                 uint freq = kvp.Value;
 
-                var cmdItem = new SqlCommand(strCommand.ToString());
+                var cmdItem = new NpgsqlCommand(strCommand.ToString());
                 cmdItem.Parameters.AddWithValue("@simpId", uDex);
                 cmdItem.Parameters.AddWithValue("@value", value);
                 cmdItem.Parameters.AddWithValue("@frequency", freq);
@@ -212,7 +212,7 @@ namespace HoloSimpID
                 double value = kvp.Key;
                 uint freq = kvp.Value;
 
-                var cmdItem = new SqlCommand(strCommand.ToString());
+                var cmdItem = new NpgsqlCommand(strCommand.ToString());
                 cmdItem.Parameters.AddWithValue("@simpId", uDex);
                 cmdItem.Parameters.AddWithValue("@value", value);
                 cmdItem.Parameters.AddWithValue("@frequency", freq);
@@ -242,20 +242,20 @@ namespace HoloSimpID
                 reader.GetCastedValueOrDefault("freq", 1u)
                 );
         }
-        public static void DeserializeAll(SqlConnection connection)
+        public static void DeserializeAll(NpgsqlConnection connection)
         {
-            SqlCommand cmd;
-            cmd = new SqlCommand ($"SELECT * FROM {sqlTableName}", connection);
+            NpgsqlCommand cmd;
+            cmd = new NpgsqlCommand ($"SELECT * FROM {sqlTableName}", connection);
             using (var reader = cmd.ExecuteReader())
                 while (reader.Read())
                     Deserialize(reader);
 
-            cmd = new SqlCommand ($"SELECT * FROM {sqlTableNameSpendMerch}", connection);
+            cmd = new NpgsqlCommand ($"SELECT * FROM {sqlTableNameSpendMerch}", connection);
             using (var reader = cmd.ExecuteReader())
                 while (reader.Read())
                     DeserializeMerchSpending(reader);
 
-            cmd = new SqlCommand ($"SELECT * FROM {sqlTableNameSpendMisc}", connection);
+            cmd = new NpgsqlCommand ($"SELECT * FROM {sqlTableNameSpendMisc}", connection);
             using (var reader = cmd.ExecuteReader())
                 while (reader.Read())
                     DeserializeMiscSpending(reader);
