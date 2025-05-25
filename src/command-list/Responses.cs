@@ -288,7 +288,7 @@ namespace HoloSimpID
                     string phrase = "bau bau ";
                     string result = string.Concat(Enumerable.Repeat(phrase, baubaumeter));
 
-                    command.RespondAsync(result);
+                    command.RespondAsync($"# {result}");
                 }
             },
         }.ToImmutableDictionary();
