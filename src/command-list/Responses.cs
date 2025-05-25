@@ -21,23 +21,28 @@ namespace HoloSimpID
                 command => {
                     // This is a reader I made so that is simple
                     // ..This is a Dictionary<string, object>,
+                    // ..if you're a dummy, Dictionary takes "string" as key returns "object" as value.
                     // ..use the name you put back during .AddOption() to as the key.
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
                     // This line gets the discord username of the person who called the command
                     string userName = command.User.Username;
-                    // Make sure to perform Conversion as this params values are object.
-                    // ..for numerics, call a "Convert.ToType(parameters[key])"
-                    // ..for string a simple "as string" is enough
+                    // .GetCastedValueOrDefault, takes the name you put back during .AddOption(),
+                    // ..if the parameter is not filled during commandd,
+                    // ./.it will return the value to the right of the comma.
                     string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
 
+                    // Then, you write the logic here
                     Simp owner = Simp.GetSimp(userName);
                     owner ??= new Simp(userName);
 
                     Cart cart = new(cartName, owner);
 
-                    // The Bot will reply with whatever you write here
+                    // This last line determine what
+                    // ..the bot responds with.
                     command.RespondAsync($"Created Cart:\n{cart.getDetails()}");
+
+                    // Now you're a genius!
                 }
             },
 
