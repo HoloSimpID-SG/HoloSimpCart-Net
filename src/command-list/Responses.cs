@@ -19,17 +19,15 @@ namespace HoloSimpID
             { "create-cart",
                 // Write this exact line: (Though honestly the "command" part can be anything, but let's not fry our brains here)
                 command => {
-                    // This is a reader I made so that is simple
-                    // ..This is a Dictionary<string, object>,
-                    // ..if you're a dummy, Dictionary takes "string" as key returns "object" as value.
-                    // ..use the name you put back during .AddOption() to as the key.
+                    // This line reads all the .AddOption() you added
+                    // ..as some sort of List.
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
                     // This line gets the discord username of the person who called the command
                     string userName = command.User.Username;
-                    // .GetCastedValueOrDefault, takes the name you put back during .AddOption(),
-                    // ..if the parameter is not filled during commandd,
-                    // ./.it will return the value to the right of the comma.
+                    // we access parameters with .GetCastedValueOrDefault()
+                    // ..the first parameter is the name you used in .AddOption()
+                    // ..the second parameter is the default value if the user did not provide it
                     string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
 
                     // Then, you write the logic here
