@@ -275,6 +275,22 @@ namespace HoloSimpID
                     command.RespondAsync($"{strResult}");
                 }
             },
+
+             //-+-+-+-+-+-+-+-+
+            // Very Important Codes
+            //-+-+-+-+-+-+-+-+
+            { "bau-bau",
+                command => {
+                    var parameters = MoLibrary.ReadCommandParameter(command);
+
+                    int baubaumeter = parameters.GetCastedValueOrDefault("times", 1);
+
+                    string phrase = "bau bau";
+                    string result = string.Concat(Enumerable.Repeat(phrase, baubaumeter));
+
+                    command.RespondAsync(result);
+                }
+            },
         }.ToImmutableDictionary();
 }
 }
