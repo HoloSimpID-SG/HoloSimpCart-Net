@@ -285,7 +285,7 @@ namespace HoloSimpID
 
                     int baubaumeter = parameters.GetCastedValueOrDefault("times", 1);
 
-                    string phrase = "bau bau";
+                    string phrase = "bau bau ";
                     string result = string.Concat(Enumerable.Repeat(phrase, baubaumeter));
 
                     command.RespondAsync(result);
