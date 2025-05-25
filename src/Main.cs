@@ -6,6 +6,8 @@ using Discord.WebSocket;
 using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System;
+using System.Diagnostics;
+using System.Text;
 
 namespace HoloSimpID
 {
@@ -13,14 +15,19 @@ namespace HoloSimpID
     {
         private static string DiscordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
         private static ulong GuildId = ulong.Parse(Environment.GetEnvironmentVariable("GUILD_ID"));
+        private static ulong ThreadId = ulong.Parse(Environment.GetEnvironmentVariable("THREAD_ID"));
         private static string SqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION");
 
         //-+-+-+-+-+-+-+-+
         // Discord Component
         //-+-+-+-+-+-+-+-+
         public static DiscordSocketClient client { get; private set; }
+        public static SocketGuild guild { get; private set; }
+        public static SocketThreadChannel threadTesting { get; private set; }
         public static CommandService commands { get; private set; }
         public static SqlConnection sqlConnection { get; private set; }
+        public static CancellationTokenSource cancellationTokenSource { get; private set; } = new();
+        public static CancellationToken cancellationToken => cancellationTokenSource.Token;
 
         public static async Task Main()
         {
@@ -47,14 +54,28 @@ namespace HoloSimpID
             await client.StartAsync();
 
             // Block this task until the program is closed.
+            Console.CancelKeyPress += (s, e) =>
+            {
+                e.Cancel = true; // Prevent immediate process termination
+                cancellationTokenSource.Cancel();
+            };
             AppDomain.CurrentDomain.ProcessExit += async (s, e) =>
             {
-                var guild = client.GetGuild(GuildId);
-                var channel = guild.GetThreadChannel(1361336661274788085);
-                await channel.SendMessageAsync("Hina, Nemui");
+                cancellationTokenSource.Cancel();
             };
 
-            await Task.Delay(-1);
+            try
+            {
+                await Task.Delay(Timeout.Infinite, cancellationToken);
+            }
+            catch (TaskCanceledException)
+            {
+                // Handle cancellation gracefully
+                await threadTesting.SendMessageAsync("Hina, Nemui");
+
+                await client.LogoutAsync();
+                await client.StopAsync();
+            }
             //await SaveDB();
         }
 
@@ -110,17 +131,26 @@ namespace HoloSimpID
 
         public static async Task ClientReady()
         {
-            var guild = client.GetGuild(GuildId);
+            guild = client.GetGuild(GuildId);
+            threadTesting = guild.GetThreadChannel(ThreadId);
+
+            //-+-+-+-+-+-+-+-+-+
+            // Starts Loading
+            //-+-+-+-+-+-+-+-+-+
+            await threadTesting.SendMessageAsync("Hina, Waking Up.\nPlease wait while I drink my coffee.");
 
             //-+-+-+-+-+-+-+-+
             // Commands Validation
             // ..so that you buffons don't forget :ayamewheeze:
+            // Checks if each command have a response and vice-versa
             //-+-+-+-+-+-+-+-+
             bool isValid = true;
             Console.WriteLine();
             Console.WriteLine($"Running Command Validation.");
+            List<string> commandName = new();
             foreach (var command in CommandConsts.commands)
             {
+                commandName.Add(command.Name);
                 if(CommandConsts.responses.ContainsKey(command.Name))
                     continue;
                 else
@@ -131,7 +161,7 @@ namespace HoloSimpID
             }
             foreach (var respond in CommandConsts.responses)
             {
-                if (CommandConsts.commands.Any(x => x.Name == respond.Key))
+                if (commandName.Contains(respond.Key))
                     continue;
                 else
                 {
@@ -150,6 +180,7 @@ namespace HoloSimpID
             // ..if not, it will retain already deleted commands
             // ..or fail to update with new logic
             //-+-+-+-+-+-+-+-+
+            Console.WriteLine("Clearing Previous Commands");
             await client.Rest.DeleteAllGlobalCommandsAsync();
             await guild.DeleteApplicationCommandsAsync();
 
@@ -158,6 +189,7 @@ namespace HoloSimpID
             {
                 try
                 {
+                    Console.WriteLine($"Registering {command.Name}");
                     await guild.CreateApplicationCommandAsync(command.Build());
                 }
                 catch (HttpException exception)
@@ -172,25 +204,26 @@ namespace HoloSimpID
                     Console.WriteLine($"Something Broke, idk... this is the first time I am making a bot. Here's the message:\n{e.Message}\nGo Figure or Go Vibe.");
                 }
             }
-            var channel = guild.GetThreadChannel(1361336661274788085);
-            await channel.SendMessageAsync("Hina, ready to serve.");
+
+            //-+-+-+-+-+-+-+-+-+
+            // Finished Loading
+            // ..Ready to respond
+            //-+-+-+-+-+-+-+-+-+
+            await threadTesting.SendMessageAsync("Hina caffeinated, ready to serve.");
         }
 
         private static async Task SlashCommandHandler(SocketSlashCommand command)
         {
-            foreach (var respond in CommandConsts.responses)
+            try
             {
-                if (command.Data.Name == respond.Key)
-                    try
-                    {
-                        await Task.Run(() => respond.Value(command));
-                    }
-                    catch (Exception e)
-                    {
-                        Console.WriteLine($"Error: ");
-                        Console.WriteLine($" {e.Message}");
-                        Console.WriteLine($"  {e.StackTrace}");
-                    }
+                await Task.Run(() => CommandConsts.responses[command.Data.Name]);
+            }
+            catch (Exception e)
+            {
+                StringBuilder strErr = new();
+                strErr.AppendLine($"Error when performing command: ");
+                strErr.AppendLine($" {e.Message}");
+                strErr.AppendLine($"  {e.StackTrace}");
             }
         }
 
