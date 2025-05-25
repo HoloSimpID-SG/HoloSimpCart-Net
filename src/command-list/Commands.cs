@@ -86,6 +86,15 @@ namespace HoloSimpID
                 .WithDescription("Where's my Hina, Gio")
                 .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", isRequired: true)
                 ,
+
+            //-+-+-+-+-+-+-+-+
+            // Very Important Codes Below
+            //-+-+-+-+-+-+-+-+
+            new SlashCommandBuilder()
+                .WithName("bau-bau")
+                .WithDescription("mogojyan what are you doing?")
+                .AddOption("times", ApplicationCommandOptionType.Integer, "Bau Bau Meter", isRequired: true)
+                ,
         };
     }
 }
