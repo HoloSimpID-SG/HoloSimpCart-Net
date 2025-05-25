@@ -283,10 +283,13 @@ namespace HoloSimpID
 
                     int baubaumeter = parameters.GetCastedValueOrDefault("times", 1);
 
+                    StringBuilder strResult = new();
+                    strResult.Append("# ");
                     string phrase = "bau bau ";
-                    string result = string.Concat(Enumerable.Repeat(phrase, baubaumeter));
+                    for(int i = 0; i < baubaumeter; i++)
+                        strResult.Append("bau bau ");
 
-                    command.RespondAsync($"# {result}");
+                    command.RespondAsync(strResult.ToString());
                 }
             },
         }.ToImmutableDictionary();
