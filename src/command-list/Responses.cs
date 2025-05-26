@@ -18,7 +18,7 @@ namespace HoloSimpID
             // Add the command name like this, followed by comma:
             { "create-cart",
                 // Write this exact line: (Though honestly the "command" part can be anything, but let's not fry our brains here)
-                command => {
+                async command => {
                     // This line reads all the .AddOption() you added
                     // ..as some sort of List.
                     var parameters = MoLibrary.ReadCommandParameter(command);
@@ -38,7 +38,7 @@ namespace HoloSimpID
 
                     // This last line determine what
                     // ..the bot responds with.
-                    command.RespondAsync($"Created Cart:\n{cart.getDetails()}");
+                    await command.RespondAsync($"Created Cart:\n{cart.getDetails()}");
 
                     // Now you're a genius!
                 }
@@ -48,7 +48,7 @@ namespace HoloSimpID
             // Get Cart Commands
             //-+-+-+-+-+-+-+-+
             { "get-cart-by-name",
-                command => {
+                async command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
@@ -57,15 +57,15 @@ namespace HoloSimpID
                     Cart cart = Cart.GetCart(cartName);
                     if (cart == null)
                     {
-                        command.RespondAsync($"No Cart with name: {cartName} was found.");
+                        await command.RespondAsync($"No Cart with name: {cartName} was found.");
                         return;
                     }
 
-                    command.RespondAsync(cart.getDetails());
+                    await command.RespondAsync(cart.getDetails());
                 }
             },
             { "get-cart-by-id",
-                command => {
+                async command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
@@ -74,11 +74,11 @@ namespace HoloSimpID
                     Cart cart = Cart.GetCart(cartId);
                     if (cart == null)
                     {
-                        command.RespondAsync($"No Cart with id: {cartId} was found.");
+                        await command.RespondAsync($"No Cart with id: {cartId} was found.");
                         return;
                     }
 
-                    command.RespondAsync(cart.getDetails());
+                    await command.RespondAsync(cart.getDetails());
                 }
             },
 
@@ -86,7 +86,7 @@ namespace HoloSimpID
             // Close Cart Commands
             //-+-+-+-+-+-+-+-+
             { "close-cart-by-name",
-                command => {
+                async command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
@@ -96,17 +96,17 @@ namespace HoloSimpID
 
                     if (cart == null)
                     {
-                        command.RespondAsync($"No Cart with name: {cartName} was found.");
+                        await command.RespondAsync($"No Cart with name: {cartName} was found.");
                         return;
                     }
 
                     cart.closeCart();
 
-                    command.RespondAsync($"{userName} has closed: \n {cart}");
+                    await command.RespondAsync($"{userName} has closed: \n {cart}");
                 }
             },
             { "close-cart-by-id",
-                command => {
+                async command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
@@ -115,13 +115,13 @@ namespace HoloSimpID
                     Cart cart = Cart.GetCart(cartId);
                     if (cart == null)
                     {
-                        command.RespondAsync($"No Cart with id: {cartId} was found.");
+                        await command.RespondAsync($"No Cart with id: {cartId} was found.");
                         return;
                     }
 
                     cart.closeCart();
 
-                    command.RespondAsync($"{userName} has closed: \n {cart}");
+                    await command.RespondAsync($"{userName} has closed: \n {cart}");
                 }
             },
 
@@ -129,7 +129,7 @@ namespace HoloSimpID
             // Add Item to Cart Commands
             //-+-+-+-+-+-+-+-+
             { "add-item-by-id",
-                command => {
+                async command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
@@ -142,7 +142,7 @@ namespace HoloSimpID
                     Cart cart = Cart.GetCart(cartId);
                     if (cart == null)
                     {
-                        command.RespondAsync($"No Cart with id: {cartId} was found.");
+                        await command.RespondAsync($"No Cart with id: {cartId} was found.");
                         return;
                     }
                     Simp simp = Simp.GetSimp(userName);
@@ -150,15 +150,15 @@ namespace HoloSimpID
 
                     if(!cart.addItem(simp, new(itemName, itemLink, itemPrice), quantity))
                     {
-                        command.RespondAsync($"{cart} is already closed.");
+                        await command.RespondAsync($"{cart} is already closed.");
                         return;
                     }
 
-                    command.RespondAsync($"{userName} added {itemName} to {cart}");
+                    await command.RespondAsync($"{userName} added {itemName} to {cart}");
                 }
             },
             { "add-item-by-name",
-                command => {
+                async command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
@@ -171,7 +171,7 @@ namespace HoloSimpID
                     Cart cart = Cart.GetCart(cartName);
                     if (cart == null)
                     {
-                        command.RespondAsync($"No Cart with name: {cartName} was found.");
+                        await command.RespondAsync($"No Cart with name: {cartName} was found.");
                         return;
                     }
 
@@ -180,11 +180,11 @@ namespace HoloSimpID
 
                     if(!cart.addItem(simp, new(itemName, itemLink, itemPrice), quantity))
                     {
-                        command.RespondAsync($"{cart} is already closed.");
+                        await command.RespondAsync($"{cart} is already closed.");
                         return;
                     }
 
-                    command.RespondAsync($"{userName} added {itemName} to {cart}");
+                    await command.RespondAsync($"{userName} added {itemName} to {cart}");
                 }
             },
 
@@ -192,7 +192,7 @@ namespace HoloSimpID
             // List All Carts
             //-+-+-+-+-+-+-+-+
             { "list-all-carts",
-                command => {
+                async command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
@@ -207,18 +207,18 @@ namespace HoloSimpID
 
                     if (cartList.IsNullOrEmpty())
                     {
-                        command.RespondAsync($"No Cart detected, what a cheapskate group");
+                        await command.RespondAsync($"No Cart detected, what a cheapskate group");
                         return;
                     }
 
                     foreach(Cart cart in cartList)
                         strResult.AppendLine(cart.getDetails());
 
-                    command.RespondAsync($"{strResult}");
+                    await command.RespondAsync($"{strResult}");
                 }
             },
             { "get-cart-stats-by-id",
-                command => {
+                async command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
@@ -227,7 +227,7 @@ namespace HoloSimpID
                     Cart cart = Cart.GetCart(cartId);
                     if (cart == null)
                     {
-                        command.RespondAsync($"No Cart with id: {cartId} was found.");
+                        await command.RespondAsync($"No Cart with id: {cartId} was found.");
                         return;
                     }
 
@@ -245,7 +245,7 @@ namespace HoloSimpID
                     }
                     if (itemFreqMap.IsNullOrEmpty() || simpFreqMap.IsNullOrEmpty())
                     {
-                        command.RespondAsync($"Cart was empty, pitiful weakling.");
+                        await command.RespondAsync($"Cart was empty, pitiful weakling.");
                         return;
                     }
 
@@ -270,7 +270,7 @@ namespace HoloSimpID
                     strResult.AppendLine($"Biggest Spender: {statsBySimp.Maximum:P2}");
                     strResult.AppendLine($"Box Plot: {statsBySimp.LowerFence:C2} <- [ {statsBySimp.Q1:C2} | {statsBySimp.Median:C2} | {statsBySimp.Q3:C2} ] -> {statsBySimp.UpperFence:C2}");
 
-                    command.RespondAsync($"{strResult}");
+                    await command.RespondAsync($"{strResult}");
                 }
             },
 
@@ -278,55 +278,20 @@ namespace HoloSimpID
             // Very Important Codes
             //-+-+-+-+-+-+-+-+
             { "bau-bau",
-                command => {
+                async command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
                     int baubaumeter = 1;
-                    try
-                    {
-                        baubaumeter = parameters.GetCastedValueOrDefault("times", 1);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error when reading baubaumeter");
-                        Console.WriteLine(ex.Message);
-                        Console.WriteLine(ex.StackTrace);
-                    }
+                    baubaumeter = parameters.GetCastedValueOrDefault("times", 1);
 
                     StringBuilder strResult = new();
-                    try
-                    {
-                        strResult.Append("# ");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error when trying to append Markdown");
-                        Console.WriteLine(ex.Message);
-                        Console.WriteLine(ex.StackTrace);
-                    }
-                    try
-                    {
-                        string phrase = "bau bau ";
-                        for(int i = 0; i < baubaumeter; i++)
-                            strResult.Append("bau bau ");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error when building baubaus");
-                        Console.WriteLine(ex.Message);
-                        Console.WriteLine(ex.StackTrace);
-                    }
+                    strResult.Append("# ");
 
-                    try
-                    {
-                        command.RespondAsync(strResult.ToString());
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error sending response");
-                        Console.WriteLine(ex.Message);
-                        Console.WriteLine(ex.StackTrace);
-                    }
+                    string phrase = "bau bau ";
+                    for(int i = 0; i < baubaumeter; i++)
+                        strResult.Append("bau bau ");
+
+                    await command.RespondAsync(strResult.ToString());
                 }
             },
         }.ToImmutableDictionary();
