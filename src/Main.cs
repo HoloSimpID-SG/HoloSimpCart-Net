@@ -216,7 +216,7 @@ namespace HoloSimpID
         {
             try
             {
-                await Task.Run(() => CommandConsts.responses[command.Data.Name]);
+                await Task.Run(() => CommandConsts.responses[command.Data.Name].Invoke(command));
             }
             catch (Exception e)
             {
