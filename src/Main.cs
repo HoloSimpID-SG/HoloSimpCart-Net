@@ -216,7 +216,8 @@ namespace HoloSimpID
         {
             try
             {
-                await Task.Run(() => CommandConsts.responses[command.Data.Name]);
+                Console.WriteLine("Received slash command: " + command.Data.Name);
+                await Task.Run(() => CommandConsts.responses[command.Data.Name].Invoke(command));
             }
             catch (Exception e)
             {
@@ -224,6 +225,7 @@ namespace HoloSimpID
                 strErr.AppendLine($"Error when performing command: ");
                 strErr.AppendLine($" {e.Message}");
                 strErr.AppendLine($"  {e.StackTrace}");
+                Console.WriteLine(strErr);
             }
         }
 
