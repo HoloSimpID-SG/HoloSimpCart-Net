@@ -7,6 +7,7 @@ using Npgsql;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Text;
 
 namespace HoloSimpID
@@ -25,13 +26,13 @@ namespace HoloSimpID
         public static SocketGuild guild { get; private set; }
         public static SocketThreadChannel threadTesting { get; private set; }
         public static CommandService commands { get; private set; }
-        public static NpgsqlConnection sqlConnection { get; private set; }
+        //public static NpgsqlConnection sqlConnection { get; private set; }
         public static CancellationTokenSource cancellationTokenSource { get; private set; } = new();
         public static CancellationToken cancellationToken => cancellationTokenSource.Token;
 
         public static async Task Main()
         {
-            sqlConnection = new NpgsqlConnection(NpgsqlConnection);
+            //sqlConnection = new NpgsqlConnection(NpgsqlConnection);
             client = new DiscordSocketClient();
             commands = new CommandService();
 
@@ -45,7 +46,7 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             // Load Database
             //-+-+-+-+-+-+-+-+
-            //await LoadDB();
+            await LoadOrInitDB();
 
             //-+-+-+-+-+-+-+-+
             // Start
@@ -79,11 +80,14 @@ namespace HoloSimpID
             }
         }
 
-        public static async Task LoadDB()
+        public static async Task LoadOrInitDB()
         {
-            using (sqlConnection)
+            using (var sqlConnection = new NpgsqlConnection(NpgsqlConnection))
             {
                 await sqlConnection.OpenAsync();
+                // This Command will reset the db
+                //await new NpgsqlCommand(MoLibrary.dropAll(), sqlConnection).ExecuteNonQueryAsync();
+                await new NpgsqlCommand(Item.SafeCreateTypeDB(), sqlConnection).ExecuteNonQueryAsync();
 
                 try
                 {
@@ -106,11 +110,12 @@ namespace HoloSimpID
 
         public static async Task SaveDB()
         {
+            Console.WriteLine("Saving Database, Before Marine steals it");
             List<NpgsqlCommand> sqlCommands = new();
             sqlCommands.AddRange(Simp.SerializeAll());
             sqlCommands.AddRange(Cart.SerializeAll());
 
-            using (sqlConnection)
+            using (var sqlConnection = new NpgsqlConnection(NpgsqlConnection))
             {
                 await sqlConnection.OpenAsync();
                 using (var transaction = sqlConnection.BeginTransaction())
@@ -123,7 +128,7 @@ namespace HoloSimpID
                             cmd.Transaction = transaction;
                             await cmd.ExecuteNonQueryAsync();
                         }
-                        transaction.Commit();
+                        await transaction.CommitAsync();
                         Console.WriteLine("Database Updated Successfully, HUMU");
                     }
                     catch (Exception ex)
@@ -131,8 +136,11 @@ namespace HoloSimpID
                         transaction.Rollback();
                         Console.WriteLine("Error updating Database: " + ex.Message);
                     }
+
                 }
             }
+
+            Console.WriteLine("Database Saved");
         }
 
         public static async Task ClientReady()
@@ -187,28 +195,55 @@ namespace HoloSimpID
             // ..or fail to update with new logic
             //-+-+-+-+-+-+-+-+
             Console.WriteLine("Clearing Previous Commands");
-            await client.Rest.DeleteAllGlobalCommandsAsync();
+            //await client.Rest.DeleteAllGlobalCommandsAsync();
             await guild.DeleteApplicationCommandsAsync();
+            await Task.Delay(1000); // Delay to avoid hitting rate limits
 
             //-+-+-+-+-+-+-+-+
             foreach (var command in CommandConsts.commands)
             {
-                try
+                bool retry;
+                do
                 {
-                    Console.WriteLine($"Registering {command.Name}");
-                    await guild.CreateApplicationCommandAsync(command.Build());
-                }
-                catch (HttpException exception)
-                {
-                    var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
-
-                    Console.WriteLine("Something Broke, idk... this is the first time I am making a bot");
-                    Console.WriteLine(json);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"Something Broke, idk... this is the first time I am making a bot. Here's the message:\n{e.Message}\nGo Figure or Go Vibe.");
-                }
+                    retry = false;
+                    try
+                    {
+                        Console.WriteLine($"Registering {command.Name}");
+                        await guild.CreateApplicationCommandAsync(command.Build());
+                    }
+                    catch (HttpException exception)
+                    {
+                        // Check for rate limit (HTTP 429)
+                        if (exception.HttpCode == HttpStatusCode.TooManyRequests)
+                        {
+                            // Discord.Net exposes RateLimit information in the exception's Data dictionary
+                            if (exception.Data.Contains("Retry-After"))
+                            {
+                                var retryAfter = Convert.ToDouble(exception.Data["Retry-After"]);
+                                Console.WriteLine($"Rate limit hit. Waiting {retryAfter} seconds before retrying...");
+                                await Task.Delay(TimeSpan.FromSeconds(retryAfter));
+                                retry = true;
+                            }
+                            else
+                            {
+                                // Default to 5 seconds if not specified
+                                Console.WriteLine("Rate limit hit. Waiting 5 seconds before retrying...");
+                                await Task.Delay(TimeSpan.FromSeconds(5));
+                                retry = true;
+                            }
+                        }
+                        else
+                        {
+                            var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
+                            Console.WriteLine("Something Broke, idk... this is the first time I am making a bot");
+                            Console.WriteLine(json);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine($"Something Broke, idk... this is the first time I am making a bot. Here's the message:\n{e.Message}\nGo Figure or Go Vibe.");
+                    }
+                } while (retry);
             }
 
             //-+-+-+-+-+-+-+-+-+
@@ -222,7 +257,8 @@ namespace HoloSimpID
         {
             try
             {
-                await Task.Run(() => CommandConsts.responses[command.Data.Name]);
+                await Task.Run(() => CommandConsts.responses[command.Data.Name].Invoke(command));
+                await SaveDB();
             }
             catch (Exception e)
             {

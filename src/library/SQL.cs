@@ -56,6 +56,7 @@ namespace HoloSimpID
             { typeof(uint), "INT" },
             { typeof(int), "INT" },
             { typeof(double), "DOUBLE PRECISION" },
+            { typeof(DateTime), "TIMESTAMPTZ" },
         }.ToImmutableDictionary();
         public const string sqlIndex = "uDex";
         /// <summary>
@@ -87,15 +88,9 @@ namespace HoloSimpID
             // Create Table if Not Exist
             //-+-+-+-+-+-+-+-+
             strCommand.Clear();
-            strCommand.AppendLine($@"IF NOT EXISTS (");
-            strCommand.AppendLine($@"   SELECT 1 FROM INFORMATION_SCHEMA.TABLES");
-            strCommand.AppendLine($@"   WHERE TABLE_NAME = @tableName AND TABLE_SCHEMA = 'dbo'");
-            strCommand.AppendLine($@")");
-            strCommand.AppendLine($@"BEGIN");
-            strCommand.AppendLine($@"    CREATE TABLE [{tableName}] (");
-            strCommand.AppendLine($@"    [{sqlIndex}] INT PRIMARY KEY");
-            strCommand.AppendLine($@")");
-            strCommand.AppendLine($@"END");
+            strCommand.AppendLine($@"CREATE TABLE IF NOT EXISTS {tableName} (");
+            strCommand.AppendLine($@"    uDex INT PRIMARY KEY");
+            strCommand.AppendLine($@");");
             NpgsqlCommand cmdCreateTable = new(strCommand.ToString());
             cmdCreateTable.Parameters.Add(new NpgsqlParameter("@tableName", tableName));
             commands.Add(cmdCreateTable);
@@ -104,33 +99,37 @@ namespace HoloSimpID
             // Alter Table with Column if Not Exist
             //-+-+-+-+-+-+-+-+
             strCommand.Clear();
-            strCommand.AppendLine($@"IF NOT EXISTS (");
-            strCommand.AppendLine($@"    SELECT 1");
-            strCommand.AppendLine($@"    FROM INFORMATION_SCHEMA.COLUMNS");
-            strCommand.AppendLine($@"    WHERE TABLE_NAME = @tableName");
-            strCommand.AppendLine($@"       AND COLUMN_NAME = @columnName");
-            strCommand.AppendLine($@"BEGIN");
-            strCommand.AppendLine($@"   ALTER TABLE [{tableName}] ADD [{dataName}] {sqlDataType[type]};");
-            strCommand.AppendLine($@"END");
+            strCommand.AppendLine($@"ALTER TABLE {tableName} ADD COLUMN IF NOT EXISTS {dataName} {sqlDataType[type]};");
             NpgsqlCommand cmdAddCol = new(strCommand.ToString());
-            cmdAddCol.Parameters.Add(new NpgsqlParameter("@tableName", tableName));
-            cmdAddCol.Parameters.Add(new NpgsqlParameter("@columnName", dataName));
             commands.Add(cmdAddCol);
 
             //-+-+-+-+-+-+-+-+
             // Insert Data
             //-+-+-+-+-+-+-+-+
             strCommand.Clear();
-            strCommand.AppendLine($@"IF EXISTS (SELECT 1 FROM [{tableName}] WHERE [{sqlIndex}] = @uDex)");
-            strCommand.AppendLine($@"   UPDATE [{tableName}] SET [{dataName}] = @data WHERE [{sqlIndex}] = @uDex");
-            strCommand.AppendLine($@"ELSE");
-            strCommand.AppendLine($@"   INSERT INTO [{tableName}] ([{sqlIndex}], [{dataName}]) VALUES (@uDex, @data)");
+            strCommand.AppendLine($@"INSERT INTO {tableName} (uDex, {dataName})");
+            strCommand.AppendLine($@"VALUES (@uDex, @data)");
+            strCommand.AppendLine($@"ON CONFLICT (uDex) DO UPDATE SET {dataName} = EXCLUDED.{dataName};");
             NpgsqlCommand cmdAddData = new(strCommand.ToString());
-            cmdAddData.Parameters.Add(new NpgsqlParameter("@uDex", uDex));
-            cmdAddData.Parameters.Add(new NpgsqlParameter("@data", data ?? DBNull.Value));
+            cmdAddData.Parameters.AddWithValue("@uDex", uDex);
+            cmdAddData.Parameters.AddWithValue("@data", data ?? DBNull.Value);
             commands.Add(cmdAddData);
 
             return commands;
+        }
+
+        public const string sqlTableCarts = "carts";
+        public const string sqlTableSimps = "simps";
+        public const string sqlTableCartItems = "cart_items";
+
+        public static string dropAll()
+        {
+            StringBuilder sqlCmdText = new();
+            sqlCmdText.AppendLine($@"DROP TABLE IF EXISTS {sqlTableCarts} CASCADE;");
+            sqlCmdText.AppendLine($@"DROP TABLE IF EXISTS {sqlTableSimps} CASCADE;");
+            sqlCmdText.AppendLine($@"DROP TABLE IF EXISTS {sqlTableCartItems} CASCADE;");
+            sqlCmdText.AppendLine($@"DROP TYPE IF EXISTS item_type CASCADE;");
+            return sqlCmdText.ToString();
         }
     }
 }

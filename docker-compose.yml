@@ -22,5 +22,16 @@ services:
       THREAD_ID: ${THREAD_ID}
       SQL_CONNECTION: Host=db;Port=5432;Username=hinaCart;Password=hinaCart;Database=dbHoloSimpIDCart
 
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
 volumes:
   db_data:
