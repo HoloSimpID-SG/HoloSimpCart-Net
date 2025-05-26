@@ -13,7 +13,7 @@ namespace HoloSimpID
     /// </summary>
     public static partial class CommandConsts
     {
-        public static readonly ImmutableDictionary<string, Action<SocketSlashCommand>> responses = new Dictionary<string, Action<SocketSlashCommand>>()
+        public static readonly ImmutableDictionary<string, Func<SocketSlashCommand, Task>> responses = new Dictionary<string, Func<SocketSlashCommand, Task>>()
         {
             // Add the command name like this, followed by comma:
             { "create-cart",
