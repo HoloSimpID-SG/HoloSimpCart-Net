@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using Microsoft.Data.SqlClient;
+using Npgsql;
 using System.Linq;
 using System.Text;
 
@@ -13,10 +13,10 @@ namespace HoloSimpID
         // Indexer
         //-+-+-+-+-+-+-+-+
         #region Indexer
-        private static uint indexer = 0;
-        public uint uDex => UDex; private readonly uint UDex;
+        private static int indexer = 0;
+        public int uDex => UDex; private readonly int UDex;
 
-        private static readonly Dictionary<uint, Simp> uDexSimps = new();
+        private static readonly Dictionary<int, Simp> uDexSimps = new();
         private static readonly Dictionary<string, Simp> uGuidSimps = new();
         //-+-+-+-+-+-+-+-+
         #endregion
@@ -53,7 +53,7 @@ namespace HoloSimpID
         /// <br/> - Returns the cart with the <see cref="uDex"/> <paramref name="cartId"/>.
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// </summary>
-        public static Simp GetSimp(uint cartId)
+        public static Simp GetSimp(int cartId)
         {
             if (uDexSimps.TryGetValue(cartId, out var simp))
                 return simp;
@@ -82,18 +82,18 @@ namespace HoloSimpID
         /// <br/> - The <see cref="IDictionary{TKey, TValue}"/> will take <see cref="uDexSimps"/>.
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// </summary>
-        public static void GetAllSimps(IList<Simp> simps, Func<uint, IDictionary<uint, Simp>, bool> predicate = null)
+        public static void GetAllSimps(IList<Simp> simps, Func<int, IDictionary<int, Simp>, bool> predicate = null)
         {
             predicate ??= (i, l) => l[i] != null;
             int len = uDexSimps.Count;
-            for (uint i = 0; i < len; i++)
+            for (int i = 0; i < len; i++)
                 if (!predicate(i, uDexSimps)) simps.Add(uDexSimps[i]);
         }
 
         /// <summary>
         /// <inheritdoc cref="GetAllSimps"/>
         /// </summary>
-        public static List<Simp> GetAllSimps(Func<uint, IDictionary<uint, Simp>, bool> predicate = null)
+        public static List<Simp> GetAllSimps(Func<int, IDictionary<int, Simp>, bool> predicate = null)
         {
             List<Simp> simps = new();
             GetAllSimps(simps, predicate);
@@ -119,146 +119,74 @@ namespace HoloSimpID
         // Database
         //-+-+-+-+-+-+-+-+-+
         #region Database
-        const string sqlTableName = "Simps";
-        const string sqlTableNameSpendMerch = "SimpSpend";
-        const string sqlTableNameSpendMisc = "SimpSpendMisc";
-        public static List<SqlCommand> SerializeAll()
+        public static List<NpgsqlCommand> SerializeAll()
         {
-            List<SqlCommand> sqlCommands = new();
+            List<NpgsqlCommand> sqlCommands = new();
             SerializeAll(sqlCommands);
             return sqlCommands;
         }
-        public static void SerializeAll(IList<SqlCommand> sqlCommands)
+        public static void SerializeAll(IList<NpgsqlCommand> sqlCommands)
         {
             foreach (Simp simp in uDexSimps.Values)
                 simp.Serialize(sqlCommands);
         }
-        public List<SqlCommand> Serialize()
+        public List<NpgsqlCommand> Serialize()
         {
-            List<SqlCommand> sqlCommands = new();
+            List<NpgsqlCommand> sqlCommands = new();
             Serialize(sqlCommands);
             return sqlCommands;
         }
-        public void Serialize(IList<SqlCommand> sqlCommands)
+        public void Serialize(IList<NpgsqlCommand> sqlCommands)
         {
             StringBuilder strCommand = new();
 
             //-+-+-+-+-+-+-+-+
-            // Create Table if not exists
+            // Cart Table
             //-+-+-+-+-+-+-+-+
             strCommand.Clear();
-            strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableName}");
-            strCommand.Append($"(");
-            strCommand.Append($"dcUserName {MoLibrary.sqlDataType[typeof(string)]}, ");
-            strCommand.Append($"simpName {MoLibrary.sqlDataType[typeof(string)]}, ");
-            strCommand.Append($")");
-            var cmdTable = new SqlCommand(strCommand.ToString());
-            sqlCommands.Add(cmdTable);
+            strCommand.Append($@"CREATE TABLE IF NOT EXISTS {MoLibrary.sqlTableSimps} (");
+            strCommand.Append($@"    u_dex SERIAL PRIMARY KEY,");
+            strCommand.Append($@"    dc_user_name TEXT NOT NULL,");
+            strCommand.Append($@"    simp_name TEXT NOT NULL");
+            strCommand.Append($@");");
+            sqlCommands.Add(new NpgsqlCommand(strCommand.ToString()));
+
+            // Insert
             strCommand.Clear();
-            strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableNameSpendMerch}");
-            strCommand.Append($"(");
-            strCommand.Append($"simpId {MoLibrary.sqlDataType[typeof(uint)]}, ");
-            strCommand.Append($"value {MoLibrary.sqlDataType[typeof(double)]}, ");
-            strCommand.Append($"frequency {MoLibrary.sqlDataType[typeof(uint)]}, ");
-            strCommand.Append($")");
-            var cmdTableMerch = new SqlCommand(strCommand.ToString());
-            sqlCommands.Add(cmdTableMerch);
-            strCommand.Clear();
-            strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableNameSpendMisc}");
-            strCommand.Append($"(");
-            strCommand.Append($"simpId {MoLibrary.sqlDataType[typeof(uint)]}, ");
-            strCommand.Append($"value {MoLibrary.sqlDataType[typeof(double)]}, ");
-            strCommand.Append($"frequency {MoLibrary.sqlDataType[typeof(uint)]}, ");
-            strCommand.Append($")");
-            var cmdTableMisc = new SqlCommand(strCommand.ToString());
-            sqlCommands.Add(cmdTableMisc);
+            strCommand.Append($@"INSERT INTO {MoLibrary.sqlTableSimps} (");
+            strCommand.Append($@"    u_dex,");
+            strCommand.Append($@"    dc_user_name,");
+            strCommand.Append($@"    simp_name");
+            strCommand.Append($@")");
+            strCommand.Append($@"VALUES (");
+            strCommand.Append($@"    @uDex,");
+            strCommand.Append($@"    @dcUserName,");
+            strCommand.Append($@"    @simpName");
+            strCommand.Append($@")");
+            strCommand.Append($@"ON CONFLICT (u_dex) DO UPDATE SET");
+            strCommand.Append($@"    dc_user_name = EXCLUDED.dc_user_name,");
+            strCommand.Append($@"    simp_name = EXCLUDED.simp_name;");
+            var insertCommand = new NpgsqlCommand(strCommand.ToString());
+            insertCommand.Parameters.AddWithValue("@uDex", uDex);
+            insertCommand.Parameters.AddWithValue("@dcUserName", dcUserName);
+            insertCommand.Parameters.AddWithValue("@simpName", simpName);
+            sqlCommands.Add(insertCommand);
             //-+-+-+-+-+-+-+-+
-
-            strCommand.Clear();
-            strCommand.Append($"INSERT INTO {sqlTableName}");
-            strCommand.Append($"(dcUserName, simpName) ");
-            strCommand.Append($"VALUES ");
-            strCommand.Append($"(@dcUserName, @simpName) ");
-            var cmdSimp = new SqlCommand(strCommand.ToString());
-            cmdSimp.Parameters.AddWithValue("@dcUserName", dcUserName);
-            cmdSimp.Parameters.AddWithValue("@simpName", simpName);
-            sqlCommands.Add(cmdSimp);
-
-            sqlCommands.Add(cmdTable);
-            strCommand.Clear();
-            strCommand.Append($"INSERT INTO {sqlTableNameSpendMerch}");
-            strCommand.Append($"(simpId, value, frequency) ");
-            strCommand.Append($"VALUES ");
-            strCommand.Append($"(@simpId, @value, @frequency) ");
-            foreach (var kvp in merchSpending)
-            {
-                double value = kvp.Key;
-                uint freq = kvp.Value;
-
-                var cmdItem = new SqlCommand(strCommand.ToString());
-                cmdItem.Parameters.AddWithValue("@simpId", uDex);
-                cmdItem.Parameters.AddWithValue("@value", value);
-                cmdItem.Parameters.AddWithValue("@frequency", freq);
-                sqlCommands.Add(cmdItem);
-            }
-
-            strCommand.Clear();
-            strCommand.Append($"INSERT INTO {sqlTableNameSpendMisc}");
-            strCommand.Append($"(simpId, value, frequency) ");
-            strCommand.Append($"VALUES ");
-            strCommand.Append($"(@simpId, @value, @frequency) ");
-            foreach (var kvp in miscSpending)
-            {
-                double value = kvp.Key;
-                uint freq = kvp.Value;
-
-                var cmdItem = new SqlCommand(strCommand.ToString());
-                cmdItem.Parameters.AddWithValue("@simpId", uDex);
-                cmdItem.Parameters.AddWithValue("@value", value);
-                cmdItem.Parameters.AddWithValue("@frequency", freq);
-                sqlCommands.Add(cmdItem);
-            }
         }
         public static Simp Deserialize(IDataReader reader)
         {
             return new Simp(
-                dcUserName: reader.GetCastedValueOrDefault("dcUserName", string.Empty),
-                simpName: reader.GetCastedValueOrDefault("simpName", string.Empty)
+                dcUserName: reader.GetCastedValueOrDefault("dc_user_name", string.Empty),
+                simpName: reader.GetCastedValueOrDefault("simp_name", string.Empty)
                 );
         }
-        public static void DeserializeMerchSpending(IDataReader reader)
+        public static void DeserializeAll(NpgsqlConnection connection)
         {
-            uint simpId = reader.GetCastedValueOrDefault("simpId", uint.MaxValue);
-            uDexSimps[simpId].addMerchSpending(
-                reader.GetCastedValueOrDefault("value", 0.0),
-                reader.GetCastedValueOrDefault("freq", 1u)
-                );
-        }
-        public static void DeserializeMiscSpending(IDataReader reader)
-        {
-            uint simpId = reader.GetCastedValueOrDefault("simpId", uint.MaxValue);
-            uDexSimps[simpId].addMiscSpending(
-                reader.GetCastedValueOrDefault("value", 0.0),
-                reader.GetCastedValueOrDefault("freq", 1u)
-                );
-        }
-        public static void DeserializeAll(SqlConnection connection)
-        {
-            SqlCommand cmd;
-            cmd = new SqlCommand ($"SELECT * FROM {sqlTableName}", connection);
+            NpgsqlCommand cmd;
+            cmd = new NpgsqlCommand ($"SELECT * FROM {MoLibrary.sqlTableSimps}", connection);
             using (var reader = cmd.ExecuteReader())
                 while (reader.Read())
                     Deserialize(reader);
-
-            cmd = new SqlCommand ($"SELECT * FROM {sqlTableNameSpendMerch}", connection);
-            using (var reader = cmd.ExecuteReader())
-                while (reader.Read())
-                    DeserializeMerchSpending(reader);
-
-            cmd = new SqlCommand ($"SELECT * FROM {sqlTableNameSpendMisc}", connection);
-            using (var reader = cmd.ExecuteReader())
-                while (reader.Read())
-                    DeserializeMiscSpending(reader);
         }
         #endregion
     }

@@ -91,8 +91,8 @@ namespace HoloSimpID
             // Very Important Codes Below
             //-+-+-+-+-+-+-+-+
             new SlashCommandBuilder()
-                .WithName("bau-bau")
-                .WithDescription("mogojyan what are you doing?")
+                .WithName("dev-drop-all-carts")
+                .WithDescription("WARNING, THERE IS NO RESET BUTTON FOR THIS")
                 .AddOption("times", ApplicationCommandOptionType.Integer, "Bau Bau Meter", isRequired: true)
                 ,
         };

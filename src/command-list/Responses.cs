@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -137,7 +138,7 @@ namespace HoloSimpID
                     string itemName = parameters.GetCastedValueOrDefault("item-name", string.Empty);
                     string itemLink = parameters.GetCastedValueOrDefault("item-link", string.Empty);
                     double itemPrice = parameters.GetCastedValueOrDefault("item-price", 0.0);
-                    uint quantity = parameters.GetCastedValueOrDefault("quantity", 1u);
+                    int quantity = parameters.GetCastedValueOrDefault("quantity", 1);
 
                     Cart cart = Cart.GetCart(cartId);
                     if (cart == null)
@@ -166,7 +167,7 @@ namespace HoloSimpID
                     string itemName = parameters.GetCastedValueOrDefault("item-name", string.Empty);
                     string itemLink = parameters.GetCastedValueOrDefault("item-link", string.Empty);
                     double itemPrice = parameters.GetCastedValueOrDefault("item-price", 0.0);
-                    uint quantity = parameters.GetCastedValueOrDefault("quantity", 1u);
+                    int quantity = parameters.GetCastedValueOrDefault("quantity", 1);
 
                     Cart cart = Cart.GetCart(cartName);
                     if (cart == null)
@@ -277,21 +278,18 @@ namespace HoloSimpID
              //-+-+-+-+-+-+-+-+
             // Very Important Codes
             //-+-+-+-+-+-+-+-+
-            { "bau-bau",
-                command => {
+            { "dev-drop-all-carts",
+                async command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
+                    int times = parameters.GetCastedValueOrDefault("times", 1);
 
-                    int baubaumeter = 1;
-                    baubaumeter = parameters.GetCastedValueOrDefault("times", 1);
-
-                    StringBuilder strResult = new();
-                    strResult.Append("# ");
-                    string phrase = "bau bau ";
-                    for(int i = 0; i < baubaumeter; i++)
-                        strResult.Append("bau bau ");
-
-                    command.RespondAsync(strResult.ToString());
+                    using (var sqlConnection = await CartBot.dataSource.OpenConnectionAsync())
+                    {
+                        await new NpgsqlCommand(MoLibrary.dropAll(), sqlConnection).ExecuteNonQueryAsync();
+                    }
+                    await command.RespondAsync("Dropped");
                 }
+
             },
         }.ToImmutableDictionary();
 }
