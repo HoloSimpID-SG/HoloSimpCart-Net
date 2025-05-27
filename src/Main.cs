@@ -17,7 +17,7 @@ namespace HoloSimpID
         private static string DiscordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
         private static ulong GuildId = ulong.Parse(Environment.GetEnvironmentVariable("GUILD_ID"));
         private static ulong ThreadId = ulong.Parse(Environment.GetEnvironmentVariable("THREAD_ID"));
-        private static string NpgsqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION");
+        private static string SqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION");
 
         //-+-+-+-+-+-+-+-+
         // Discord Component
@@ -26,6 +26,7 @@ namespace HoloSimpID
         public static SocketGuild guild { get; private set; }
         public static SocketThreadChannel threadTesting { get; private set; }
         public static CommandService commands { get; private set; }
+        public static NpgsqlDataSource dataSource { get; private set; }
         //public static NpgsqlConnection sqlConnection { get; private set; }
         public static CancellationTokenSource cancellationTokenSource { get; private set; } = new();
         public static CancellationToken cancellationToken => cancellationTokenSource.Token;
@@ -33,6 +34,7 @@ namespace HoloSimpID
         public static async Task Main()
         {
             //sqlConnection = new NpgsqlConnection(NpgsqlConnection);
+
             client = new DiscordSocketClient();
             commands = new CommandService();
 
@@ -82,29 +84,33 @@ namespace HoloSimpID
 
         public static async Task LoadOrInitDB()
         {
-            using (var sqlConnection = new NpgsqlConnection(NpgsqlConnection))
-            {
-                await sqlConnection.OpenAsync();
-                // This Command will reset the db
-                //await new NpgsqlCommand(MoLibrary.dropAll(), sqlConnection).ExecuteNonQueryAsync();
-                await new NpgsqlCommand(Item.SafeCreateTypeDB(), sqlConnection).ExecuteNonQueryAsync();
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(SqlConnection);
+            dataSourceBuilder.MapComposite<Item>("item_type");
+            dataSource = dataSourceBuilder.Build();
 
-                try
+            try
+            {
+                using (var sqlConnection = await dataSource.OpenConnectionAsync())
                 {
                     Simp.DeserializeAll(sqlConnection);
                     Cart.DeserializeAll(sqlConnection);
                     Console.WriteLine("Database Loaded Succesfully, HUMU");
+                    return;
                 }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Error Loading Database");
-                    StringBuilder strErr = new();
-                    strErr.AppendLine($"Error when performing command: ");
-                    strErr.AppendLine($" {e.Message}");
-                    strErr.AppendLine($"  {e.StackTrace}");
-                    Console.WriteLine(strErr);
-                    // DO NOTHING, this is the first time running the bot
-                }
+            }
+            catch (PostgresException ex) when (ex.SqlState == "3D000")
+            {
+                Console.WriteLine("Database does not exist or is not ready, retrying in 3 seconds...");
+                await Task.Delay(3000);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error Loading Database");
+                StringBuilder strErr = new();
+                strErr.AppendLine($"Error when performing command: ");
+                strErr.AppendLine($" {e.Message}");
+                strErr.AppendLine($"  {e.StackTrace}");
+                Console.WriteLine(strErr);
             }
         }
 
@@ -115,9 +121,9 @@ namespace HoloSimpID
             sqlCommands.AddRange(Simp.SerializeAll());
             sqlCommands.AddRange(Cart.SerializeAll());
 
-            using (var sqlConnection = new NpgsqlConnection(NpgsqlConnection))
+            using (var sqlConnection = await dataSource.OpenConnectionAsync())
             {
-                await sqlConnection.OpenAsync();
+                //await sqlConnection.OpenAsync();
                 using (var transaction = sqlConnection.BeginTransaction())
                 {
                     try

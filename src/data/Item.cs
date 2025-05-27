@@ -27,9 +27,9 @@ namespace HoloSimpID
             // PostgreSQL wants underscored type names, so we use 'item_type' instead of 'ItemType'
             sqlCmdText.AppendLine($@"  IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'item_type') THEN");
             sqlCmdText.AppendLine($@"    CREATE TYPE item_type AS (");
-            sqlCmdText.AppendLine($@"      itemName TEXT,");
-            sqlCmdText.AppendLine($@"      itemLink TEXT,");
-            sqlCmdText.AppendLine($@"      priceSGD DOUBLE PRECISION");
+            sqlCmdText.AppendLine($@"      item_name TEXT,");
+            sqlCmdText.AppendLine($@"      item_link TEXT,");
+            sqlCmdText.AppendLine($@"      price_sgd DOUBLE PRECISION");
             sqlCmdText.AppendLine($@"    );");
             sqlCmdText.AppendLine($@"  END IF;");
             sqlCmdText.AppendLine($@"END");

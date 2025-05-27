@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Npgsql;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -277,57 +278,18 @@ namespace HoloSimpID
              //-+-+-+-+-+-+-+-+
             // Very Important Codes
             //-+-+-+-+-+-+-+-+
-            { "bau-bau",
-                command => {
+            { "dev-drop-all-carts",
+                async command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
+                    int times = parameters.GetCastedValueOrDefault("times", 1);
 
-                    int baubaumeter = 1;
-                    try
+                    using (var sqlConnection = await CartBot.dataSource.OpenConnectionAsync())
                     {
-                        baubaumeter = parameters.GetCastedValueOrDefault("times", 1);
+                        await new NpgsqlCommand(MoLibrary.dropAll(), sqlConnection).ExecuteNonQueryAsync();
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error when reading baubaumeter");
-                        Console.WriteLine(ex.Message);
-                        Console.WriteLine(ex.StackTrace);
-                    }
-
-                    StringBuilder strResult = new();
-                    try
-                    {
-                        strResult.Append("# ");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error when trying to append Markdown");
-                        Console.WriteLine(ex.Message);
-                        Console.WriteLine(ex.StackTrace);
-                    }
-                    try
-                    {
-                        string phrase = "bau bau ";
-                        for(int i = 0; i < baubaumeter; i++)
-                            strResult.Append("bau bau ");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error when building baubaus");
-                        Console.WriteLine(ex.Message);
-                        Console.WriteLine(ex.StackTrace);
-                    }
-
-                    try
-                    {
-                        command.RespondAsync(strResult.ToString());
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error sending response");
-                        Console.WriteLine(ex.Message);
-                        Console.WriteLine(ex.StackTrace);
-                    }
+                    await command.RespondAsync("Dropped");
                 }
+
             },
         }.ToImmutableDictionary();
 }

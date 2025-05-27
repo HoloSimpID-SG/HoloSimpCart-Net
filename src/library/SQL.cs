@@ -33,7 +33,7 @@ namespace HoloSimpID
         /// <inheritdoc cref="GetCastedValueOrDefault{T}(IDataReader, string, Func{object, T}, T)"/>
         /// </summary>
         public static DateTime GetCastedValueOrDefault(this IDataReader reader, string key, DateTime defaultValue = default) =>
-            GetCastedValueOrDefault(reader, key, x => DateTime.Parse(x as string, CultureInfo.CurrentCulture, DateTimeStyles.RoundtripKind), defaultValue);
+            GetCastedValueOrDefault(reader, key, x => x is DateTime dt ? dt : DateTime.Parse(x.ToString(), CultureInfo.CurrentCulture, DateTimeStyles.RoundtripKind), defaultValue);
         /// <summary>
         /// <inheritdoc cref="GetCastedValueOrDefault{T}(IDataReader, string, Func{object, T}, T)"/>
         /// </summary>

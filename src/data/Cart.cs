@@ -214,20 +214,6 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             // Cart Table
             //-+-+-+-+-+-+-+-+
-            // Safe Create
-            strCommand.Clear();
-            strCommand.Append($@"CREATE TABLE IF NOT EXISTS {MoLibrary.sqlTableCarts} (");
-            strCommand.Append($@"    u_dex SERIAL PRIMARY KEY,");
-            strCommand.Append($@"    cart_name TEXT NOT NULL,");
-            strCommand.Append($@"    owner_id INT REFERENCES {MoLibrary.sqlTableSimps}(u_dex),");
-            strCommand.Append($@"    cart_date_start TIMESTAMPTZ,");
-            strCommand.Append($@"    cart_date_plan TIMESTAMPTZ,");
-            strCommand.Append($@"    cart_date_end TIMESTAMPTZ,");
-            strCommand.Append($@"    cost_shipping DOUBLE PRECISION");
-            strCommand.Append($@");");
-            sqlCommands.Add(new NpgsqlCommand(strCommand.ToString()));
-
-            // Insert
             strCommand.Clear();
             strCommand.Append($@"INSERT INTO {MoLibrary.sqlTableCarts} (");
             strCommand.Append($@"    u_dex,");
@@ -248,8 +234,8 @@ namespace HoloSimpID
             strCommand.Append($@"    @costShipping");
             strCommand.Append($@")");
             strCommand.Append($@"ON CONFLICT (u_dex) DO UPDATE SET");
-            strCommand.Append($@"    cart_name = EXCLUDED.cartName,");
-            strCommand.Append($@"    owner_id = EXCLUDED.ownerId,");
+            strCommand.Append($@"    cart_name = EXCLUDED.cart_name,");
+            strCommand.Append($@"    owner_id = EXCLUDED.owner_id,");
             strCommand.Append($@"    cart_date_start = EXCLUDED.cart_date_start,");
             strCommand.Append($@"    cart_date_plan = EXCLUDED.cart_date_plan,");
             strCommand.Append($@"    cart_date_end = EXCLUDED.cart_date_end,");
@@ -269,18 +255,6 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             // Cart Items
             //-+-+-+-+-+-+-+-+
-            // Safe Create
-            strCommand.Clear();
-            strCommand.Append($@"CREATE TABLE IF NOT EXISTS {MoLibrary.sqlTableCartItems} (");
-            strCommand.Append($@"    cart_id INT REFERENCES {MoLibrary.sqlTableCarts}(u_dex),");
-            strCommand.Append($@"    simp_id INT REFERENCES {MoLibrary.sqlTableSimps}(uDex),");
-            strCommand.Append($@"    items item_type[],");
-            strCommand.Append($@"    quantities INT[],");
-            strCommand.Append($@"    PRIMARY KEY (cart_id, simp_id)");
-            strCommand.Append($@");");
-            sqlCommands.Add(new NpgsqlCommand(strCommand.ToString()));
-
-            // Insert
             strCommand.Clear();
             foreach(var kvp in cartItems)
             {
@@ -310,7 +284,9 @@ namespace HoloSimpID
                 var insertItemCommand = new NpgsqlCommand(strCommand.ToString());
                 insertItemCommand.Parameters.AddWithValue("@uDex", uDex);
                 insertItemCommand.Parameters.AddWithValue("@simpId", simp.uDex);
-                insertItemCommand.Parameters.AddWithValue("@items", listItem.ToArray());
+                var itemsParam = insertItemCommand.Parameters.AddWithValue("@items", listItem.ToArray());
+                itemsParam.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Array;
+                itemsParam.DataTypeName = "item_type[]";
                 insertItemCommand.Parameters.AddWithValue("@quantities", listQuantity.ToArray());
 
                 sqlCommands.Add(insertItemCommand);
