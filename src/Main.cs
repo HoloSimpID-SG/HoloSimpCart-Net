@@ -16,7 +16,6 @@ namespace HoloSimpID
         private static string DiscordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
         private static ulong GuildId = ulong.Parse(Environment.GetEnvironmentVariable("GUILD_ID"));
         private static ulong ThreadId = ulong.Parse(Environment.GetEnvironmentVariable("THREAD_ID"));
-        private static string SqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION");
 
         //-+-+-+-+-+-+-+-+
         // Discord Component
@@ -25,13 +24,11 @@ namespace HoloSimpID
         public static SocketGuild guild { get; private set; }
         public static SocketThreadChannel threadTesting { get; private set; }
         public static CommandService commands { get; private set; }
-        public static SqlConnection sqlConnection { get; private set; }
-        public static CancellationTokenSource cancellationTokenSource { get; private set; } = new();
+        private static readonly CancellationTokenSource cancellationTokenSource = new();
         public static CancellationToken cancellationToken => cancellationTokenSource.Token;
 
         public static async Task Main()
         {
-            //connection = new SqlConnection(SqlConnection);
             client = new DiscordSocketClient();
             commands = new CommandService();
 
@@ -45,7 +42,8 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             // Load Database
             //-+-+-+-+-+-+-+-+
-            //await LoadDB();
+            await DbHandler.InitializeDB();
+            await DbHandler.LoadDB();
 
             //-+-+-+-+-+-+-+-+
             // Start
@@ -66,6 +64,7 @@ namespace HoloSimpID
 
             try
             {
+                // Hold the application open until cancellation is requested
                 await Task.Delay(Timeout.Infinite, cancellationToken);
             }
             catch (TaskCanceledException)
@@ -73,62 +72,11 @@ namespace HoloSimpID
                 // Handle cancellation gracefully
                 await threadTesting.SendMessageAsync("Hina, Nemui");
 
+                await DbHandler.SaveAllDB();
                 await client.LogoutAsync();
                 await client.StopAsync();
             }
-            //await SaveDB();
         }
-
-        public static async Task LoadDB()
-        {
-            using (sqlConnection)
-            {
-                await sqlConnection.OpenAsync();
-
-                try
-                {
-                    Simp.DeserializeAll(sqlConnection);
-                    Cart.DeserializeAll(sqlConnection);
-                    Console.WriteLine("Database Loaded Succesfully, HUMU");
-                }
-                catch
-                {
-                    // DO NOTHING, this is the first time running the bot
-                }
-            }
-        }
-
-        public static async Task SaveDB()
-        {
-            List<SqlCommand> sqlCommands = new();
-            sqlCommands.AddRange(Simp.SerializeAll());
-            sqlCommands.AddRange(Cart.SerializeAll());
-
-            using (sqlConnection)
-            {
-                await sqlConnection.OpenAsync();
-                using (var transaction = sqlConnection.BeginTransaction())
-                {
-                    try
-                    {
-                        foreach (var cmd in sqlCommands)
-                        {
-                            cmd.Connection = sqlConnection;
-                            cmd.Transaction = transaction;
-                            await cmd.ExecuteNonQueryAsync();
-                        }
-                        transaction.Commit();
-                        Console.WriteLine("Database Updated Successfully, HUMU");
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        Console.WriteLine("Error updating Database: " + ex.Message);
-                    }
-                }
-            }
-        }
-
         public static async Task ClientReady()
         {
             guild = client.GetGuild(GuildId);
@@ -211,12 +159,11 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+-+
             await threadTesting.SendMessageAsync("Hina caffeinated, ready to serve.");
         }
-
         private static async Task SlashCommandHandler(SocketSlashCommand command)
         {
             try
             {
-                await CommandConsts.responses[command.Data.Name](command);
+                await Task.Run(() => CommandConsts.responses[command.Data.Name].Invoke(command));
             }
             catch (Exception e)
             {

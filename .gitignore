@@ -133,5 +133,6 @@ $RECYCLE.BIN/
 _NCrunch*
 
 .vs/
+.vscode/
 
 .env*

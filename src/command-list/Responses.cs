@@ -31,7 +31,7 @@ namespace HoloSimpID
                     string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
 
                     // Then, you write the logic here
-                    Simp owner = Simp.GetSimp(userName);
+                    Simp? owner = Simp.GetSimp(userName);
                     owner ??= new Simp(userName);
 
                     Cart cart = new(cartName, owner);
@@ -259,7 +259,7 @@ namespace HoloSimpID
                     strResult.AppendLine($"Average Cost: {statsByItem.Mean:C2}");
                     strResult.AppendLine($"Standard Deviation: {statsByItem.StandardDeviation:C2}");
                     strResult.AppendLine($"Gini Coefficient: {statsByItem.GiniCoefficient:P2}");
-                    strResult.AppendLine($"Most Expensive: {statsByItem.Maximum:P2}");
+                    strResult.AppendLine($"Most Expensive: {statsByItem.Maximum:C2}");
                     strResult.AppendLine($"Box Plot: {statsByItem.LowerFence:C2} <- [ {statsByItem.Q1:C2} | {statsByItem.Median:C2} | {statsByItem.Q3:C2} ] -> {statsByItem.UpperFence:C2}");
 
                     strResult.AppendLine($"## By Simps:");
@@ -267,33 +267,38 @@ namespace HoloSimpID
                     strResult.AppendLine($"Average Spending: {statsBySimp.Mean:C2}");
                     strResult.AppendLine($"Standard Deviation: {statsBySimp.StandardDeviation:C2}");
                     strResult.AppendLine($"Gini Coefficient: {statsBySimp.GiniCoefficient:P2}");
-                    strResult.AppendLine($"Biggest Spender: {statsBySimp.Maximum:P2}");
+                    strResult.AppendLine($"Biggest Spender: {statsBySimp.Maximum:C2}");
                     strResult.AppendLine($"Box Plot: {statsBySimp.LowerFence:C2} <- [ {statsBySimp.Q1:C2} | {statsBySimp.Median:C2} | {statsBySimp.Q3:C2} ] -> {statsBySimp.UpperFence:C2}");
 
                     await command.RespondAsync($"{strResult}");
                 }
             },
 
-             //-+-+-+-+-+-+-+-+
-            // Very Important Codes
-            //-+-+-+-+-+-+-+-+
-            { "bau-bau",
+            
+            { "register-me",
                 async command => {
                     var parameters = MoLibrary.ReadCommandParameter(command);
 
-                    int baubaumeter = 1;
-                    baubaumeter = parameters.GetCastedValueOrDefault("times", 1);
+                    string userName = command.User.Username;
+                    string nickname = parameters.GetCastedValueOrDefault("nickname", x => Convert.ToString(x), string.Empty);
 
-                    StringBuilder strResult = new();
-                    strResult.Append("# ");
+                    try
+                    {
+                        Simp? simp = Simp.GetSimp(userName);
+                        if(simp != null)
+                            simp.simpName = nickname;
+                        else
+                            simp = new Simp(userName, nickname);
 
-                    string phrase = "bau bau ";
-                    for(int i = 0; i < baubaumeter; i++)
-                        strResult.Append("bau bau ");
-
-                    await command.RespondAsync(strResult.ToString());
+                        await command.RespondAsync($"Successfully registered Simp: {simp.simpName} ({simp.uDex})");
+                    }
+                    catch (Exception e)
+                    {
+                        await command.RespondAsync($"Error registering Simp: {e.Message}");
+                    }
                 }
             },
+            
         }.ToImmutableDictionary();
 }
 }

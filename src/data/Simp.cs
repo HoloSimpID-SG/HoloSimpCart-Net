@@ -42,6 +42,33 @@ namespace HoloSimpID
             this.simpName = simpName ?? dcUserName;
             merchSpending = new();
             miscSpending = new();
+            
+            //-+-+-+-+-+-+-+-+
+            // Insert into Database
+            //-+-+-+-+-+-+-+-+
+            StringBuilder sqlCmdStr = new();
+
+            sqlCmdStr.Clear();
+            sqlCmdStr.AppendLine($@"INSERT INTO {MoLibrary.sqlTableSimps} (");
+            sqlCmdStr.AppendLine($@"    u_dex,");
+            sqlCmdStr.AppendLine($@"    dc_user_name,");
+            sqlCmdStr.AppendLine($@"    simp_name");
+            sqlCmdStr.AppendLine($@")");
+            sqlCmdStr.AppendLine($@"VALUES (");
+            sqlCmdStr.AppendLine($@"    @uDex,");
+            sqlCmdStr.AppendLine($@"    @dcUserName,");
+            sqlCmdStr.AppendLine($@"    @simpName");
+            sqlCmdStr.AppendLine($@")");
+            sqlCmdStr.AppendLine($@"ON CONFLICT (u_dex) DO UPDATE SET");
+            sqlCmdStr.AppendLine($@"    dc_user_name = EXCLUDED.dc_user_name,");
+            sqlCmdStr.AppendLine($@"    simp_name = EXCLUDED.simp_name;");
+            var sqlCmd = new NpgsqlCommand(sqlCmdStr.ToString());
+            sqlCmd.Parameters.AddWithValue("@uDex", uDex);
+            sqlCmd.Parameters.AddWithValue("@dcUserName", dcUserName);
+            sqlCmd.Parameters.AddWithValue("@simpName", simpName);
+            
+            Task.Run(() => DbHandler.RunSqlCommand(sqlCmd));
+            //-+-+-+-+-+-+-+-+
         }
 
         //-+-+-+-+-+-+-+-+-+
@@ -50,12 +77,12 @@ namespace HoloSimpID
         #region Instance Getter
         /// <summary>
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-        /// <br/> - Returns the cart with the <see cref="uDex"/> <paramref name="cartId"/>.
+        /// <br/> - Returns the cart with the <see cref="uDex"/> <paramref name="simpId"/>.
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// </summary>
-        public static Simp GetSimp(uint cartId)
+        public static Simp? GetSimp(int simpId)
         {
-            if (uDexSimps.TryGetValue(cartId, out var simp))
+            if (uDexSimps.TryGetValue(simpId, out var simp))
                 return simp;
             return null;
         }
@@ -66,7 +93,7 @@ namespace HoloSimpID
         /// <br/> - Prioritize open carts.
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// </summary>
-        public static Simp GetSimp(string simpName)
+        public static Simp? GetSimp(string simpName)
         {
             var simps = uDexSimps.Where(x => x.Value.dcUserName == simpName).Select(x => x.Value);
             if (simps.IsNullOrEmpty())
@@ -141,83 +168,27 @@ namespace HoloSimpID
         }
         public void Serialize(IList<SqlCommand> sqlCommands)
         {
-            StringBuilder strCommand = new();
+            StringBuilder sqlCmdStr = new();
 
-            //-+-+-+-+-+-+-+-+
-            // Create Table if not exists
-            //-+-+-+-+-+-+-+-+
-            strCommand.Clear();
-            strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableName}");
-            strCommand.Append($"(");
-            strCommand.Append($"dcUserName {MoLibrary.sqlDataType[typeof(string)]}, ");
-            strCommand.Append($"simpName {MoLibrary.sqlDataType[typeof(string)]}, ");
-            strCommand.Append($")");
-            var cmdTable = new SqlCommand(strCommand.ToString());
-            sqlCommands.Add(cmdTable);
-            strCommand.Clear();
-            strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableNameSpendMerch}");
-            strCommand.Append($"(");
-            strCommand.Append($"simpId {MoLibrary.sqlDataType[typeof(uint)]}, ");
-            strCommand.Append($"value {MoLibrary.sqlDataType[typeof(double)]}, ");
-            strCommand.Append($"frequency {MoLibrary.sqlDataType[typeof(uint)]}, ");
-            strCommand.Append($")");
-            var cmdTableMerch = new SqlCommand(strCommand.ToString());
-            sqlCommands.Add(cmdTableMerch);
-            strCommand.Clear();
-            strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableNameSpendMisc}");
-            strCommand.Append($"(");
-            strCommand.Append($"simpId {MoLibrary.sqlDataType[typeof(uint)]}, ");
-            strCommand.Append($"value {MoLibrary.sqlDataType[typeof(double)]}, ");
-            strCommand.Append($"frequency {MoLibrary.sqlDataType[typeof(uint)]}, ");
-            strCommand.Append($")");
-            var cmdTableMisc = new SqlCommand(strCommand.ToString());
-            sqlCommands.Add(cmdTableMisc);
-            //-+-+-+-+-+-+-+-+
-
-            strCommand.Clear();
-            strCommand.Append($"INSERT INTO {sqlTableName}");
-            strCommand.Append($"(dcUserName, simpName) ");
-            strCommand.Append($"VALUES ");
-            strCommand.Append($"(@dcUserName, @simpName) ");
-            var cmdSimp = new SqlCommand(strCommand.ToString());
-            cmdSimp.Parameters.AddWithValue("@dcUserName", dcUserName);
-            cmdSimp.Parameters.AddWithValue("@simpName", simpName);
-            sqlCommands.Add(cmdSimp);
-
-            sqlCommands.Add(cmdTable);
-            strCommand.Clear();
-            strCommand.Append($"INSERT INTO {sqlTableNameSpendMerch}");
-            strCommand.Append($"(simpId, value, frequency) ");
-            strCommand.Append($"VALUES ");
-            strCommand.Append($"(@simpId, @value, @frequency) ");
-            foreach (var kvp in merchSpending)
-            {
-                double value = kvp.Key;
-                uint freq = kvp.Value;
-
-                var cmdItem = new SqlCommand(strCommand.ToString());
-                cmdItem.Parameters.AddWithValue("@simpId", uDex);
-                cmdItem.Parameters.AddWithValue("@value", value);
-                cmdItem.Parameters.AddWithValue("@frequency", freq);
-                sqlCommands.Add(cmdItem);
-            }
-
-            strCommand.Clear();
-            strCommand.Append($"INSERT INTO {sqlTableNameSpendMisc}");
-            strCommand.Append($"(simpId, value, frequency) ");
-            strCommand.Append($"VALUES ");
-            strCommand.Append($"(@simpId, @value, @frequency) ");
-            foreach (var kvp in miscSpending)
-            {
-                double value = kvp.Key;
-                uint freq = kvp.Value;
-
-                var cmdItem = new SqlCommand(strCommand.ToString());
-                cmdItem.Parameters.AddWithValue("@simpId", uDex);
-                cmdItem.Parameters.AddWithValue("@value", value);
-                cmdItem.Parameters.AddWithValue("@frequency", freq);
-                sqlCommands.Add(cmdItem);
-            }
+            sqlCmdStr.Clear();
+            sqlCmdStr.AppendLine($@"INSERT INTO {MoLibrary.sqlTableSimps} (");
+            sqlCmdStr.AppendLine($@"    u_dex,");
+            sqlCmdStr.AppendLine($@"    dc_user_name,");
+            sqlCmdStr.AppendLine($@"    simp_name");
+            sqlCmdStr.AppendLine($@")");
+            sqlCmdStr.AppendLine($@"VALUES (");
+            sqlCmdStr.AppendLine($@"    @uDex,");
+            sqlCmdStr.AppendLine($@"    @dcUserName,");
+            sqlCmdStr.AppendLine($@"    @simpName");
+            sqlCmdStr.AppendLine($@")");
+            sqlCmdStr.AppendLine($@"ON CONFLICT (u_dex) DO UPDATE SET");
+            sqlCmdStr.AppendLine($@"    dc_user_name = EXCLUDED.dc_user_name,");
+            sqlCmdStr.AppendLine($@"    simp_name = EXCLUDED.simp_name;");
+            var insertCommand = new NpgsqlCommand(sqlCmdStr.ToString());
+            insertCommand.Parameters.AddWithValue("@uDex", uDex);
+            insertCommand.Parameters.AddWithValue("@dcUserName", dcUserName);
+            insertCommand.Parameters.AddWithValue("@simpName", simpName);
+            sqlCommands.Add(insertCommand);
         }
         public static Simp Deserialize(IDataReader reader)
         {

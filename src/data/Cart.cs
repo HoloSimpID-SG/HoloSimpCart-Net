@@ -37,7 +37,9 @@ namespace HoloSimpID
         public Dictionary<Simp, Dictionary<Item, uint>> cartItems { get; private set; }
         public double costShipping => CostShipping; private double CostShipping;
 
-        public Cart(string cartName, Simp cartOwner, DateTime? cartDateStart = null, DateTime? cartDatePlan = null)
+        public Cart(
+            string cartName, Simp cartOwner,
+            DateTime? cartDateStart = null, DateTime? cartDatePlan = null)
         {
             //-+-+-+-+-+-+-+-+
             // Indexer
@@ -53,8 +55,49 @@ namespace HoloSimpID
 
             CartDateStart = cartDateStart ?? DateTime.Now;
             CartDatePlan = cartDatePlan ?? DateTime.Now.AddDays(Consts.defaultCartPlan);
-            CartDateEnd = CartDateStart.AddTicks(-1);
-            cartItems = new();
+            CartDateEnd = DateTime.MinValue;
+            CostShipping = 0.0;
+
+            cartItems = new Dictionary<Simp, Dictionary<Item, uint>>();
+
+            //-+-+-+-+-+-+-+-+
+            // Enter to Database
+            //-+-+-+-+-+-+-+-+
+            StringBuilder sqlCmdStr = new();
+            sqlCmdStr.AppendLine($@"INSERT INTO {MoLibrary.sqlTableCarts} (");
+            sqlCmdStr.AppendLine($@"    u_dex,");
+            sqlCmdStr.AppendLine($@"    cart_name,");
+            sqlCmdStr.AppendLine($@"    owner_id,");
+            sqlCmdStr.AppendLine($@"    cart_date_start,");
+            sqlCmdStr.AppendLine($@"    cart_date_plan,");
+            sqlCmdStr.AppendLine($@"    cart_date_end,");
+            sqlCmdStr.AppendLine($@"    cost_shipping");
+            sqlCmdStr.AppendLine($@")");
+            sqlCmdStr.AppendLine($@"VALUES (");
+            sqlCmdStr.AppendLine($@"    @uDex,");
+            sqlCmdStr.AppendLine($@"    @cartName,");
+            sqlCmdStr.AppendLine($@"    @ownerId,");
+            sqlCmdStr.AppendLine($@"    @cartDateStart,");
+            sqlCmdStr.AppendLine($@"    @cartDatePlan,");
+            sqlCmdStr.AppendLine($@"    @cartDateEnd,");
+            sqlCmdStr.AppendLine($@"    @costShipping");
+            sqlCmdStr.AppendLine($@")");
+            sqlCmdStr.AppendLine($@"ON CONFLICT (u_dex) DO UPDATE SET");
+            sqlCmdStr.AppendLine($@"    cart_name = EXCLUDED.cart_name,");
+            sqlCmdStr.AppendLine($@"    owner_id = EXCLUDED.owner_id,");
+            sqlCmdStr.AppendLine($@"    cart_date_start = EXCLUDED.cart_date_start,");
+            sqlCmdStr.AppendLine($@"    cart_date_plan = EXCLUDED.cart_date_plan,");
+            sqlCmdStr.AppendLine($@"    cart_date_end = EXCLUDED.cart_date_end,");
+            sqlCmdStr.AppendLine($@"    cost_shipping = EXCLUDED.cost_shipping;");
+            var sqlCmd = new NpgsqlCommand(sqlCmdStr.ToString());
+            sqlCmd.Parameters.AddWithValue("@uDex", uDex);
+            sqlCmd.Parameters.AddWithValue("@cartName", cartName);
+            sqlCmd.Parameters.AddWithValue("@ownerId", cartOwner.uDex);
+            sqlCmd.Parameters.AddWithValue("@cartDateStart", CartDateStart);
+            sqlCmd.Parameters.AddWithValue("@cartDatePlan", CartDatePlan);
+            sqlCmd.Parameters.AddWithValue("@cartDateEnd", cartDateEnd);
+            sqlCmd.Parameters.AddWithValue("@costShipping", costShipping);
+            Task.Run(() => DbHandler.RunSqlCommand(sqlCmd));
         }
         public override string ToString() => $"{cartName}";
 
@@ -131,7 +174,22 @@ namespace HoloSimpID
         // Cart Actions
         //-+-+-+-+-+-+-+-+-+
         #region Cart Actions
-        public void setShippingCost(double shippingCost) => CostShipping = shippingCost;
+        public void setShippingCost(double costShipping)
+        {
+            CostShipping = costShipping;
+            
+            //-+-+-+-+-+-+-+-+
+            // Enter to Database
+            //-+-+-+-+-+-+-+-+
+            StringBuilder sqlCmdStr = new();
+            sqlCmdStr.AppendLine($@"UPDATE {MoLibrary.sqlTableCarts} SET");
+            sqlCmdStr.AppendLine($@"    cost_shipping = @costShipping");
+            sqlCmdStr.AppendLine($@"WHERE u_dex = @uDex;");
+            var sqlCmd = new NpgsqlCommand(sqlCmdStr.ToString());
+            sqlCmd.Parameters.AddWithValue("@uDex", uDex);
+            sqlCmd.Parameters.AddWithValue("@costShipping", costShipping);
+            Task.Run(() => DbHandler.RunSqlCommand(sqlCmd));
+        }
         public int totalSimps => cartItems.Count;
         public long totalItems => cartItems.Sum(x => x.Value.Sum(x => x.Value));
         public void closeCart(DateTime? dateTime = null)
@@ -148,6 +206,18 @@ namespace HoloSimpID
                     simp.addItemToHistory(itemQuantityPair);
                 simp.addMiscSpending(shippingCost);
             }
+            
+            //-+-+-+-+-+-+-+-+
+            // Enter to Database
+            //-+-+-+-+-+-+-+-+
+            StringBuilder sqlCmdStr = new();
+            sqlCmdStr.AppendLine($@"UPDATE {MoLibrary.sqlTableCarts} SET");
+            sqlCmdStr.AppendLine($@"    cart_date_end = @cartDateEnd");
+            sqlCmdStr.AppendLine($@"WHERE u_dex = @uDex;");
+            var sqlCmd = new NpgsqlCommand(sqlCmdStr.ToString());
+            sqlCmd.Parameters.AddWithValue("@uDex", uDex);
+            sqlCmd.Parameters.AddWithValue("@cartDateEnd", cartDateEnd);
+            Task.Run(() => DbHandler.RunSqlCommand(sqlCmd));
         }
         public string getDetails()
         {
@@ -167,20 +237,105 @@ namespace HoloSimpID
             }
             return strResult.ToString();
         }
-        public bool addItem(Simp simp, Item item, uint quantity = 1)
+        public bool changeItemQuantity(Simp simp, string itemName, int quantity = 1)
         {
-            if (stillOpen)
+            if (!stillOpen)
+                return false;
+
+            Dictionary<Item, uint> simpItems;
+
+            // simp does not have items in the cart
+            if (!cartItems.TryGetValue(simp, out simpItems))
+                return false;
+
+            bool itemFound = false;
+            bool isNowEmpty = false;
+            foreach (var item in simpItems.Keys)
             {
-                Dictionary<Item, uint> simpItems;
-                if (!cartItems.TryGetValue(simp, out simpItems))
+                if (item.itemName == itemName)
                 {
-                    simpItems = new();
-                    cartItems.Add(simp, simpItems);
+                    itemFound = true;
+                    simpItems[item] = (uint)quantity;
+                    if (quantity <= 0)
+                    {
+                        simpItems.Remove(item);
+                        if (simpItems.Count == 0)
+                        {
+                            isNowEmpty = true;
+                            cartItems.Remove(simp);
+                        }
+                    }
+                    break;
                 }
-                simpItems.AddFrequency(item, quantity);
+            }
+
+            if (itemFound)
+            {
+                StringBuilder sqlCmdStr = new();
+                NpgsqlCommand sqlCmd;
+                if (isNowEmpty)
+                {
+                    sqlCmdStr.AppendLine($@"DELETE FROM {MoLibrary.sqlTableCartItems} WHERE cart_id = @uDex AND simp_id = @simpId;");
+                    sqlCmd = new NpgsqlCommand(sqlCmdStr.ToString());
+                }
+                else
+                {
+                    Item[] listItem = simpItems.Keys.ToArray();
+                    int[] listQuantity = simpItems.Values.Select(x => (int)x).ToArray();
+
+                    sqlCmdStr.AppendLine($@"UPDATE {MoLibrary.sqlTableCartItems} SET");
+                    sqlCmdStr.AppendLine($@"    cart_id = @uDex,");
+                    sqlCmdStr.AppendLine($@"    simp_id = @simpId,");
+                    sqlCmdStr.AppendLine($@"    items = @items,");
+                    sqlCmdStr.AppendLine($@"    quantities = @quantities");
+                    sqlCmdStr.AppendLine($@"WHERE cart_id = @uDex AND simp_id = @simpId;");
+                    sqlCmd = new NpgsqlCommand(sqlCmdStr.ToString());
+                    sqlCmd.Parameters.AddWithValue("@uDex", uDex);
+                    sqlCmd.Parameters.AddWithValue("@simpId", simp.uDex);
+                    sqlCmd.Parameters.AddWithValue("@items", listItem);
+                    sqlCmd.Parameters.AddWithValue("@quantities", listQuantity);
+                }
+                Task.Run(() => DbHandler.RunSqlCommand(sqlCmd));
+
                 return true;
             }
+            
             return false;
+        }
+        public bool addItem(Simp simp, Item item, int quantity = 1)
+        {
+            if(!stillOpen)
+                return false;
+            
+            Dictionary<Item, uint> simpItems;
+            if (!cartItems.TryGetValue(simp, out simpItems))
+            {
+                simpItems = new();
+                cartItems.Add(simp, simpItems);
+            }
+            simpItems.AddFrequency(item, (uint)quantity);
+
+            //-+-+-+-+-+-+-+-+
+            // Enter to Database
+            //-+-+-+-+-+-+-+-+
+            Item[] listItem = simpItems.Keys.ToArray();
+            int[] listQuantity = simpItems.Values.Select(x => (int)x).ToArray();
+
+            StringBuilder sqlCmdStr = new();
+            sqlCmdStr.AppendLine($@"UPDATE {MoLibrary.sqlTableCartItems} SET");
+            sqlCmdStr.AppendLine($@"    cart_id = @uDex,");
+            sqlCmdStr.AppendLine($@"    simp_id = @simpId,");
+            sqlCmdStr.AppendLine($@"    items = @items,");
+            sqlCmdStr.AppendLine($@"    quantities = @quantities");
+            sqlCmdStr.AppendLine($@"WHERE cart_id = @uDex AND simp_id = @simpId;");
+            var sqlCmd = new NpgsqlCommand(sqlCmdStr.ToString());
+            sqlCmd.Parameters.AddWithValue("@uDex", uDex);
+            sqlCmd.Parameters.AddWithValue("@simpId", simp.uDex);
+            sqlCmd.Parameters.AddWithValue("@items", listItem);
+            sqlCmd.Parameters.AddWithValue("@quantities", listQuantity);
+            Task.Run(() => DbHandler.RunSqlCommand(sqlCmd));
+
+            return true;
         }
         #endregion
 
@@ -209,68 +364,86 @@ namespace HoloSimpID
         }
         public void Serialize(IList<SqlCommand> sqlCommands)
         {
-            StringBuilder strCommand = new();
+            StringBuilder sqlCmdStr = new();
             //-+-+-+-+-+-+-+-+
             // Create Table if not exists
             //-+-+-+-+-+-+-+-+
-            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartName));
-            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartOwner.uDex, "cartOwnerId"));
-            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartDateStart));
-            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartDatePlan));
-            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, cartDateEnd));
-            sqlCommands.AddRange(MoLibrary.SafeUpsert(sqlTableName, uDex, costShipping));
-
-            strCommand.Clear();
-            strCommand.Append($"CREATE TABLE IF NOT EXISTS {sqlTableNameCartItems}");
-            strCommand.Append($"(");
-            strCommand.Append($"cartId {MoLibrary.sqlDataType[typeof(uint)]}, ");
-            strCommand.Append($"ownerId {MoLibrary.sqlDataType[typeof(uint)]}, ");
-            strCommand.Append($"itemName {MoLibrary.sqlDataType[typeof(string)]}, ");
-            strCommand.Append($"itemLink {MoLibrary.sqlDataType[typeof(string)]}, ");
-            strCommand.Append($"itemPrice {MoLibrary.sqlDataType[typeof(double)]}, ");
-            strCommand.Append($"quantity {MoLibrary.sqlDataType[typeof(uint)]}, ");
-            strCommand.Append($")");
-            var cmdTableMerch = new SqlCommand(strCommand.ToString());
-            sqlCommands.Add(cmdTableMerch);
+            sqlCmdStr.Clear();
+            sqlCmdStr.AppendLine($@"INSERT INTO {MoLibrary.sqlTableCarts} (");
+            sqlCmdStr.AppendLine($@"    u_dex,");
+            sqlCmdStr.AppendLine($@"    cart_name,");
+            sqlCmdStr.AppendLine($@"    owner_id,");
+            sqlCmdStr.AppendLine($@"    cart_date_start,");
+            sqlCmdStr.AppendLine($@"    cart_date_plan,");
+            sqlCmdStr.AppendLine($@"    cart_date_end,");
+            sqlCmdStr.AppendLine($@"    cost_shipping");
+            sqlCmdStr.AppendLine($@")");
+            sqlCmdStr.AppendLine($@"VALUES (");
+            sqlCmdStr.AppendLine($@"    @uDex,");
+            sqlCmdStr.AppendLine($@"    @cartName,");
+            sqlCmdStr.AppendLine($@"    @ownerId,");
+            sqlCmdStr.AppendLine($@"    @cartDateStart,");
+            sqlCmdStr.AppendLine($@"    @cartDatePlan,");
+            sqlCmdStr.AppendLine($@"    @cartDateEnd,");
+            sqlCmdStr.AppendLine($@"    @costShipping");
+            sqlCmdStr.AppendLine($@")");
+            sqlCmdStr.AppendLine($@"ON CONFLICT (u_dex) DO UPDATE SET");
+            sqlCmdStr.AppendLine($@"    cart_name = EXCLUDED.cart_name,");
+            sqlCmdStr.AppendLine($@"    owner_id = EXCLUDED.owner_id,");
+            sqlCmdStr.AppendLine($@"    cart_date_start = EXCLUDED.cart_date_start,");
+            sqlCmdStr.AppendLine($@"    cart_date_plan = EXCLUDED.cart_date_plan,");
+            sqlCmdStr.AppendLine($@"    cart_date_end = EXCLUDED.cart_date_end,");
+            sqlCmdStr.AppendLine($@"    cost_shipping = EXCLUDED.cost_shipping;");
+            var insertCommand = new NpgsqlCommand(sqlCmdStr.ToString());
+            insertCommand.Parameters.AddWithValue("@uDex", uDex);
+            insertCommand.Parameters.AddWithValue("@cartName", cartName);
+            insertCommand.Parameters.AddWithValue("@ownerId", cartOwner.uDex);
+            insertCommand.Parameters.AddWithValue("@cartDateStart", cartDateStart);
+            insertCommand.Parameters.AddWithValue("@cartDatePlan", cartDatePlan);
+            insertCommand.Parameters.AddWithValue("@cartDateEnd", cartDateEnd);
+            insertCommand.Parameters.AddWithValue("@costShipping", costShipping);
+            sqlCommands.Add(insertCommand);
             //-+-+-+-+-+-+-+-+
 
-            strCommand.Clear();
-            strCommand.Append($"INSERT INTO {sqlTableName}");
-            strCommand.Append($"(cartName, ownerId, cartDateStart, cartDatePlan, cartDateEnd, costShipping) ");
-            strCommand.Append($"VALUES ");
-            strCommand.Append($"(@cartName, @ownerId, @cartDateStart, @cartDatePlan, @cartDateEnd, @costShipping) ");
-            SqlCommand cmdCart = new SqlCommand(strCommand.ToString());
-            cmdCart.Parameters.AddWithValue("@cartName", cartName);
-            cmdCart.Parameters.AddWithValue("@ownerId", cartOwner.uDex);
-            cmdCart.Parameters.AddWithValue("@cartDateStart", cartDateStart.ToSqlDate());
-            cmdCart.Parameters.AddWithValue("@cartDatePlan", cartDatePlan.ToSqlDate());
-            cmdCart.Parameters.AddWithValue("@cartDateEnd", cartDateEnd.ToSqlDate());
-            cmdCart.Parameters.AddWithValue("@costShipping", costShipping);
-            sqlCommands.Add(cmdCart);
 
-            strCommand.Clear();
-            strCommand.Append($"INSERT INTO {sqlTableNameCartItems}");
-            strCommand.Append($"(cartId, ownerId, itemName, itemLink, itemPrice, quantity) ");
-            strCommand.Append($"VALUES ");
-            strCommand.Append($"(@cartId, @ownerId, @itemName, @itemLink, @itemPrice, @quantity) ");
-            foreach (var kvp in cartItems)
+            //-+-+-+-+-+-+-+-+
+            // Cart Items
+            //-+-+-+-+-+-+-+-+
+            sqlCmdStr.Clear();
+            foreach(var kvp in cartItems)
             {
                 Simp simp = kvp.Key;
                 foreach (var list in kvp.Value)
                 {
-                    Item item = list.Key;
-                    uint quantity = list.Value;
-
-                    SqlCommand cmdItem = new SqlCommand(strCommand.ToString());
-                    cmdItem.Parameters.AddWithValue("@cartId", uDex);
-                    cmdItem.Parameters.AddWithValue("@ownerId", simp.uDex);
-                    cmdItem.Parameters.AddWithValue("@itemName", item.itemName);
-                    cmdItem.Parameters.AddWithValue("@itemLink", item.itemLink);
-                    cmdItem.Parameters.AddWithValue("@itemPrice", item.priceSGD);
-                    cmdItem.Parameters.AddWithValue("@quantity", quantity);
-                    sqlCommands.Add(cmdItem);
+                    listItem.Add(itemQuantityPair.Key);
+                    listQuantity.Add(itemQuantityPair.Value);
                 }
+                sqlCmdStr.AppendLine($@"INSERT INTO {MoLibrary.sqlTableCartItems} (");
+                sqlCmdStr.AppendLine($@"    cart_id,");
+                sqlCmdStr.AppendLine($@"    simp_id,");
+                sqlCmdStr.AppendLine($@"    items,");
+                sqlCmdStr.AppendLine($@"    quantities");
+                sqlCmdStr.AppendLine($@")");
+                sqlCmdStr.AppendLine($@"VALUES (");
+                sqlCmdStr.AppendLine($@"    @uDex,");
+                sqlCmdStr.AppendLine($@"    @simpId,");
+                sqlCmdStr.AppendLine($@"    @items,");
+                sqlCmdStr.AppendLine($@"    @quantities");
+                sqlCmdStr.AppendLine($@")");
+                sqlCmdStr.AppendLine($@"ON CONFLICT (cart_id, simp_id) DO UPDATE SET");
+                sqlCmdStr.AppendLine($@"    items = EXCLUDED.items,");
+                sqlCmdStr.AppendLine($@"    quantities = EXCLUDED.quantities;");
+                var insertItemCommand = new NpgsqlCommand(sqlCmdStr.ToString());
+                insertItemCommand.Parameters.AddWithValue("@uDex", uDex);
+                insertItemCommand.Parameters.AddWithValue("@simpId", simp.uDex);
+                var itemsParam = insertItemCommand.Parameters.AddWithValue("@items", listItem.ToArray());
+                //itemsParam.NpgsqlDbType = NpgsqlTypes.NpgsqlDbType.Array;
+                //itemsParam.DataTypeName = "item_type[]";
+                insertItemCommand.Parameters.AddWithValue("@quantities", listQuantity.ToArray());
+
+                sqlCommands.Add(insertItemCommand);
             }
+            //-+-+-+-+-+-+-+-+
         }
         public static void Deserialize(IDataReader reader)
         {
@@ -281,12 +454,14 @@ namespace HoloSimpID
                 cartDatePlan: reader.GetCastedValueOrDefault("cartDatePlan", DateTime.Now.AddDays(Consts.defaultCartPlan))
                 );
 
-            DateTime cartDateEnd = reader.GetCastedValueOrDefault("cartDateEnd", DateTime.Now.AddTicks(-1));
-            double shippingCost = reader.GetCastedValueOrDefault("shippingCost", 0.0);
-
-            if (cartDateEnd >= cart.cartDateStart)
-                cart.closeCart(cartDateEnd);
+            double shippingCost = reader.GetCastedValueOrDefault("cost_shipping", 0.0);
             cart.setShippingCost(shippingCost);
+        }
+        public static void DeserializeDateEnd(IDataReader reader)
+        {
+            int uDex = reader.GetCastedValueOrDefault("u_dex", int.MaxValue);
+            DateTime cartDateEnd = reader.GetCastedValueOrDefault("cart_date_end", DateTime.MinValue);
+            uDexCarts[uDex].closeCart(cartDateEnd);
         }
         public static void DeserializeCartItems(IDataReader reader)
         {
@@ -312,6 +487,11 @@ namespace HoloSimpID
             using (var reader = cmd.ExecuteReader())
                 while (reader.Read())
                     DeserializeCartItems(reader);
+
+            cmd = new NpgsqlCommand($"SELECT * FROM {MoLibrary.sqlTableCarts}", connection);
+            using (var reader = cmd.ExecuteReader())
+                while (reader.Read())
+                    DeserializeDateEnd(reader);
         }
         #endregion
     }

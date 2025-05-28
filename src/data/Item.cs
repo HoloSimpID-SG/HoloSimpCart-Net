@@ -5,8 +5,11 @@ namespace HoloSimpID
 {
     public class Item
     {
+        [PgName("item_name")]
         public string itemName;
+        [PgName("item_link")]
         public string itemLink;
+        [PgName("price_sgd")]
         public double priceSGD;
 
         public Item(string itemName, string itemLink = "", double priceSGD = 0)
