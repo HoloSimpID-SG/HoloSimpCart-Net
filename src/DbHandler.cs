@@ -8,6 +8,11 @@ namespace HoloSimpID
     {
         private static NpgsqlDataSource dataSource;
 
+
+        public const string sqlTableCarts = "carts";
+        public const string sqlTableSimps = "simps";
+        public const string sqlTableCartItems = "cart_items";
+        
         public static async Task InitializeDB()
         {
             string SqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION");

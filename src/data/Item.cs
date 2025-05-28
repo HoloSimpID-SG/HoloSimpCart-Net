@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Generic;
+using NpgsqlTypes;
 
 namespace HoloSimpID
 {

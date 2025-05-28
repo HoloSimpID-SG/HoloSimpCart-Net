@@ -137,7 +137,7 @@ namespace HoloSimpID
                     string itemName = parameters.GetCastedValueOrDefault("item-name", string.Empty);
                     string itemLink = parameters.GetCastedValueOrDefault("item-link", string.Empty);
                     double itemPrice = parameters.GetCastedValueOrDefault("item-price", 0.0);
-                    uint quantity = parameters.GetCastedValueOrDefault("quantity", 1u);
+                    int quantity = parameters.GetCastedValueOrDefault("quantity", 1);
 
                     Cart cart = Cart.GetCart(cartId);
                     if (cart == null)
@@ -166,7 +166,7 @@ namespace HoloSimpID
                     string itemName = parameters.GetCastedValueOrDefault("item-name", string.Empty);
                     string itemLink = parameters.GetCastedValueOrDefault("item-link", string.Empty);
                     double itemPrice = parameters.GetCastedValueOrDefault("item-price", 0.0);
-                    uint quantity = parameters.GetCastedValueOrDefault("quantity", 1u);
+                    int quantity = parameters.GetCastedValueOrDefault("quantity", 1);
 
                     Cart cart = Cart.GetCart(cartName);
                     if (cart == null)

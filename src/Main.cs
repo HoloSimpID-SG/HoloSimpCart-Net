@@ -1,9 +1,7 @@
-﻿using Azure;
-using Discord;
+﻿using Discord;
 using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
-using Microsoft.Data.SqlClient;
 using Newtonsoft.Json;
 using System;
 using System.Diagnostics;

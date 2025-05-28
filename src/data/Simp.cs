@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Text;
+using Npgsql;
 
 namespace HoloSimpID
 {
@@ -13,10 +13,10 @@ namespace HoloSimpID
         // Indexer
         //-+-+-+-+-+-+-+-+
         #region Indexer
-        private static uint indexer = 0;
-        public uint uDex => UDex; private readonly uint UDex;
+        private static int indexer = 0;
+        public int uDex => UDex; private readonly int UDex;
 
-        private static readonly Dictionary<uint, Simp> uDexSimps = new();
+        private static readonly Dictionary<int, Simp> uDexSimps = new();
         private static readonly Dictionary<string, Simp> uGuidSimps = new();
         //-+-+-+-+-+-+-+-+
         #endregion
@@ -49,7 +49,7 @@ namespace HoloSimpID
             StringBuilder sqlCmdStr = new();
 
             sqlCmdStr.Clear();
-            sqlCmdStr.AppendLine($@"INSERT INTO {MoLibrary.sqlTableSimps} (");
+            sqlCmdStr.AppendLine($@"INSERT INTO {DbHandler.sqlTableSimps} (");
             sqlCmdStr.AppendLine($@"    u_dex,");
             sqlCmdStr.AppendLine($@"    dc_user_name,");
             sqlCmdStr.AppendLine($@"    simp_name");
@@ -109,18 +109,18 @@ namespace HoloSimpID
         /// <br/> - The <see cref="IDictionary{TKey, TValue}"/> will take <see cref="uDexSimps"/>.
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         /// </summary>
-        public static void GetAllSimps(IList<Simp> simps, Func<uint, IDictionary<uint, Simp>, bool> predicate = null)
+        public static void GetAllSimps(IList<Simp> simps, Func<int, IDictionary<int, Simp>, bool> predicate = null)
         {
             predicate ??= (i, l) => l[i] != null;
             int len = uDexSimps.Count;
-            for (uint i = 0; i < len; i++)
+            for (int i = 0; i < len; i++)
                 if (!predicate(i, uDexSimps)) simps.Add(uDexSimps[i]);
         }
 
         /// <summary>
         /// <inheritdoc cref="GetAllSimps"/>
         /// </summary>
-        public static List<Simp> GetAllSimps(Func<uint, IDictionary<uint, Simp>, bool> predicate = null)
+        public static List<Simp> GetAllSimps(Func<int, IDictionary<int, Simp>, bool> predicate = null)
         {
             List<Simp> simps = new();
             GetAllSimps(simps, predicate);
@@ -149,29 +149,29 @@ namespace HoloSimpID
         const string sqlTableName = "Simps";
         const string sqlTableNameSpendMerch = "SimpSpend";
         const string sqlTableNameSpendMisc = "SimpSpendMisc";
-        public static List<SqlCommand> SerializeAll()
+        public static List<NpgsqlCommand> SerializeAll()
         {
-            List<SqlCommand> sqlCommands = new();
+            List<NpgsqlCommand> sqlCommands = new();
             SerializeAll(sqlCommands);
             return sqlCommands;
         }
-        public static void SerializeAll(IList<SqlCommand> sqlCommands)
+        public static void SerializeAll(IList<NpgsqlCommand> sqlCommands)
         {
             foreach (Simp simp in uDexSimps.Values)
                 simp.Serialize(sqlCommands);
         }
-        public List<SqlCommand> Serialize()
+        public List<NpgsqlCommand> Serialize()
         {
-            List<SqlCommand> sqlCommands = new();
+            List<NpgsqlCommand> sqlCommands = new();
             Serialize(sqlCommands);
             return sqlCommands;
         }
-        public void Serialize(IList<SqlCommand> sqlCommands)
+        public void Serialize(IList<NpgsqlCommand> sqlCommands)
         {
             StringBuilder sqlCmdStr = new();
 
             sqlCmdStr.Clear();
-            sqlCmdStr.AppendLine($@"INSERT INTO {MoLibrary.sqlTableSimps} (");
+            sqlCmdStr.AppendLine($@"INSERT INTO {DbHandler.sqlTableSimps} (");
             sqlCmdStr.AppendLine($@"    u_dex,");
             sqlCmdStr.AppendLine($@"    dc_user_name,");
             sqlCmdStr.AppendLine($@"    simp_name");
@@ -197,39 +197,13 @@ namespace HoloSimpID
                 simpName: reader.GetCastedValueOrDefault("simpName", string.Empty)
                 );
         }
-        public static void DeserializeMerchSpending(IDataReader reader)
+        public static void DeserializeAll(NpgsqlConnection connection)
         {
-            uint simpId = reader.GetCastedValueOrDefault("simpId", uint.MaxValue);
-            uDexSimps[simpId].addMerchSpending(
-                reader.GetCastedValueOrDefault("value", 0.0),
-                reader.GetCastedValueOrDefault("freq", 1u)
-                );
-        }
-        public static void DeserializeMiscSpending(IDataReader reader)
-        {
-            uint simpId = reader.GetCastedValueOrDefault("simpId", uint.MaxValue);
-            uDexSimps[simpId].addMiscSpending(
-                reader.GetCastedValueOrDefault("value", 0.0),
-                reader.GetCastedValueOrDefault("freq", 1u)
-                );
-        }
-        public static void DeserializeAll(SqlConnection connection)
-        {
-            SqlCommand cmd;
-            cmd = new SqlCommand ($"SELECT * FROM {sqlTableName}", connection);
+            NpgsqlCommand cmd;
+            cmd = new NpgsqlCommand ($"SELECT * FROM {sqlTableName}", connection);
             using (var reader = cmd.ExecuteReader())
                 while (reader.Read())
                     Deserialize(reader);
-
-            cmd = new SqlCommand ($"SELECT * FROM {sqlTableNameSpendMerch}", connection);
-            using (var reader = cmd.ExecuteReader())
-                while (reader.Read())
-                    DeserializeMerchSpending(reader);
-
-            cmd = new SqlCommand ($"SELECT * FROM {sqlTableNameSpendMisc}", connection);
-            using (var reader = cmd.ExecuteReader())
-                while (reader.Read())
-                    DeserializeMiscSpending(reader);
         }
         #endregion
     }

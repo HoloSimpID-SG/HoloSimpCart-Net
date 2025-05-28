@@ -1,4 +1,4 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using Npgsql;
 using System.Collections.Immutable;
 using System.Data;
 using System.Globalization;
@@ -9,8 +9,8 @@ namespace HoloSimpID
 {
     public static partial class MoLibrary
     {
-        public static string ToSqlString(this string str) => '\'' + str.Replace("'", "''") + '\'';
-        public static string ToSqlDate(this DateTime dateTime) => '\'' + $"{dateTime:o}" + '\'';
+        public static string ToNpgsqlString(this string str) => '\'' + str.Replace("'", "''") + '\'';
+        public static string ToNpgsqlDate(this DateTime dateTime) => '\'' + $"{dateTime:o}" + '\'';
 
         /// <summary>
         /// <inheritdoc cref="GetCastedValueOrDefault{TKey, TValue}(IDictionary{TKey, object}, TKey, Func{object, TValue}, TValue)"/>
@@ -33,7 +33,7 @@ namespace HoloSimpID
         /// <inheritdoc cref="GetCastedValueOrDefault{T}(IDataReader, string, Func{object, T}, T)"/>
         /// </summary>
         public static DateTime GetCastedValueOrDefault(this IDataReader reader, string key, DateTime defaultValue = default) =>
-            GetCastedValueOrDefault(reader, key, x => DateTime.Parse(x as string, CultureInfo.CurrentCulture, DateTimeStyles.RoundtripKind), defaultValue);
+            GetCastedValueOrDefault(reader, key, x => x is DateTime dt ? dt : DateTime.Parse(x.ToString(), CultureInfo.CurrentCulture, DateTimeStyles.RoundtripKind), defaultValue);
         /// <summary>
         /// <inheritdoc cref="GetCastedValueOrDefault{T}(IDataReader, string, Func{object, T}, T)"/>
         /// </summary>
@@ -56,11 +56,12 @@ namespace HoloSimpID
             { typeof(uint), "INT" },
             { typeof(int), "INT" },
             { typeof(double), "DOUBLE PRECISION" },
+            { typeof(DateTime), "TIMESTAMPTZ" },
         }.ToImmutableDictionary();
         public const string sqlIndex = "uDex";
         /// <summary>
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-        /// <br/> - Returns sets of <see cref="SqlCommand"/> for safely upserting <paramref name="data"/>.
+        /// <br/> - Returns sets of <see cref="NpgsqlCommand"/> for safely upserting <paramref name="data"/>.
         /// <br/> - Automatically creates the table and column if it does not exist.
         /// <br/> - Automatically interprets the column name and type from <paramref name="dataName"/>.
         /// <br/> -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -69,12 +70,12 @@ namespace HoloSimpID
         /// <br/> - This one will automatically takes the variable name of <paramref name="data"/>.
         /// <br/> - Fill this to override.
         /// </param>
-        public static List<SqlCommand> SafeUpsert(
+        public static List<NpgsqlCommand> SafeUpsert(
             string tableName, uint uDex,
             object data,
             [CallerArgumentExpression("data")] string dataName = null)
         {
-            List<SqlCommand> commands = new();
+            List<NpgsqlCommand> commands = new();
             StringBuilder strCommand = new();
 
             // Safe Conversion for DateTime
@@ -87,47 +88,31 @@ namespace HoloSimpID
             // Create Table if Not Exist
             //-+-+-+-+-+-+-+-+
             strCommand.Clear();
-            strCommand.AppendLine($@"IF NOT EXISTS (");
-            strCommand.AppendLine($@"   SELECT 1 FROM INFORMATION_SCHEMA.TABLES");
-            strCommand.AppendLine($@"   WHERE TABLE_NAME = @tableName AND TABLE_SCHEMA = 'dbo'");
-            strCommand.AppendLine($@")");
-            strCommand.AppendLine($@"BEGIN");
-            strCommand.AppendLine($@"    CREATE TABLE [{tableName}] (");
-            strCommand.AppendLine($@"    [{sqlIndex}] INT PRIMARY KEY");
-            strCommand.AppendLine($@")");
-            strCommand.AppendLine($@"END");
-            SqlCommand cmdCreateTable = new(strCommand.ToString());
-            cmdCreateTable.Parameters.Add(new SqlParameter("@tableName", tableName));
+            strCommand.AppendLine($@"CREATE TABLE IF NOT EXISTS {tableName} (");
+            strCommand.AppendLine($@"    uDex INT PRIMARY KEY");
+            strCommand.AppendLine($@");");
+            NpgsqlCommand cmdCreateTable = new(strCommand.ToString());
+            cmdCreateTable.Parameters.Add(new NpgsqlParameter("@tableName", tableName));
             commands.Add(cmdCreateTable);
 
             //-+-+-+-+-+-+-+-+
             // Alter Table with Column if Not Exist
             //-+-+-+-+-+-+-+-+
             strCommand.Clear();
-            strCommand.AppendLine($@"IF NOT EXISTS (");
-            strCommand.AppendLine($@"    SELECT 1");
-            strCommand.AppendLine($@"    FROM INFORMATION_SCHEMA.COLUMNS");
-            strCommand.AppendLine($@"    WHERE TABLE_NAME = @tableName");
-            strCommand.AppendLine($@"       AND COLUMN_NAME = @columnName");
-            strCommand.AppendLine($@"BEGIN");
-            strCommand.AppendLine($@"   ALTER TABLE [{tableName}] ADD [{dataName}] {sqlDataType[type]};");
-            strCommand.AppendLine($@"END");
-            SqlCommand cmdAddCol = new(strCommand.ToString());
-            cmdAddCol.Parameters.Add(new SqlParameter("@tableName", tableName));
-            cmdAddCol.Parameters.Add(new SqlParameter("@columnName", dataName));
+            strCommand.AppendLine($@"ALTER TABLE {tableName} ADD COLUMN IF NOT EXISTS {dataName} {sqlDataType[type]};");
+            NpgsqlCommand cmdAddCol = new(strCommand.ToString());
             commands.Add(cmdAddCol);
 
             //-+-+-+-+-+-+-+-+
             // Insert Data
             //-+-+-+-+-+-+-+-+
             strCommand.Clear();
-            strCommand.AppendLine($@"IF EXISTS (SELECT 1 FROM [{tableName}] WHERE [{sqlIndex}] = @uDex)");
-            strCommand.AppendLine($@"   UPDATE [{tableName}] SET [{dataName}] = @data WHERE [{sqlIndex}] = @uDex");
-            strCommand.AppendLine($@"ELSE");
-            strCommand.AppendLine($@"   INSERT INTO [{tableName}] ([{sqlIndex}], [{dataName}]) VALUES (@uDex, @data)");
-            SqlCommand cmdAddData = new(strCommand.ToString());
-            cmdAddData.Parameters.Add(new SqlParameter("@uDex", uDex));
-            cmdAddData.Parameters.Add(new SqlParameter("@data", data ?? DBNull.Value));
+            strCommand.AppendLine($@"INSERT INTO {tableName} (uDex, {dataName})");
+            strCommand.AppendLine($@"VALUES (@uDex, @data)");
+            strCommand.AppendLine($@"ON CONFLICT (uDex) DO UPDATE SET {dataName} = EXCLUDED.{dataName};");
+            NpgsqlCommand cmdAddData = new(strCommand.ToString());
+            cmdAddData.Parameters.AddWithValue("@uDex", uDex);
+            cmdAddData.Parameters.AddWithValue("@data", data ?? DBNull.Value);
             commands.Add(cmdAddData);
 
             return commands;
