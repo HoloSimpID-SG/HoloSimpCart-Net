@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  database:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: hina_cart
+      POSTGRES_PASSWORD: hina_cart
+      POSTGRES_DB: hina_cart
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db-init:/docker-entrypoint-initdb.d 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hina_cart"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  db-admin:
+    image: dpage/pgadmin4:latest
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: hinaforyadi@gio.com
+      PGADMIN_DEFAULT_PASSWORD: hinaforyadi
+    ports:
+      - "8080:80"
+    depends_on:
+      database:
+        condition: service_healthy
+
+  discord-bot:
+    build: .
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      GUILD_ID: ${GUILD_ID}
+      THREAD_ID: ${THREAD_ID}
+      SQL_CONNECTION: ${SQL_CONNECTION}
+
+
+volumes:
+  db_data:
