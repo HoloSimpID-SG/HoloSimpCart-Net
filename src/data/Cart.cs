@@ -248,6 +248,7 @@ namespace HoloSimpID
             if (!cartItems.TryGetValue(simp, out simpItems))
                 return false;
 
+            // Look for the item in the simp's items
             bool itemFound = false;
             bool isNowEmpty = false;
             foreach (var item in simpItems.Keys)
@@ -269,6 +270,7 @@ namespace HoloSimpID
                 }
             }
 
+            // Actual Modification Logic
             if (itemFound)
             {
                 StringBuilder sqlCmdStr = new();

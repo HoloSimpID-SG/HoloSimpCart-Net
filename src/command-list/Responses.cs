@@ -21,7 +21,7 @@ namespace HoloSimpID
                 async command => {
                     // This line reads all the .AddOption() you added
                     // ..as some sort of List.
-                    var parameters = MoLibrary.ReadCommandParameter(command);
+                    Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
 
                     // This line gets the discord username of the person who called the command
                     string userName = command.User.Username;
@@ -49,7 +49,7 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             { "get-cart-by-name",
                 async command => {
-                    var parameters = MoLibrary.ReadCommandParameter(command);
+                    Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
                     string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
@@ -66,7 +66,7 @@ namespace HoloSimpID
             },
             { "get-cart-by-id",
                 async command => {
-                    var parameters = MoLibrary.ReadCommandParameter(command);
+                    Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
                     int cartId = parameters.GetCastedValueOrDefault("cart-id", -1);
@@ -87,7 +87,7 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             { "close-cart-by-name",
                 async command => {
-                    var parameters = MoLibrary.ReadCommandParameter(command);
+                    Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
                     string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
@@ -107,7 +107,7 @@ namespace HoloSimpID
             },
             { "close-cart-by-id",
                 async command => {
-                    var parameters = MoLibrary.ReadCommandParameter(command);
+                    Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
                     int cartId = parameters.GetCastedValueOrDefault("cart-id", -1);
@@ -130,7 +130,7 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             { "add-item-by-id",
                 async command => {
-                    var parameters = MoLibrary.ReadCommandParameter(command);
+                    Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
                     int cartId = parameters.GetCastedValueOrDefault("cart-id", -1);
@@ -159,7 +159,7 @@ namespace HoloSimpID
             },
             { "add-item-by-name",
                 async command => {
-                    var parameters = MoLibrary.ReadCommandParameter(command);
+                    Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
                     string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
@@ -193,7 +193,7 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             { "list-all-carts",
                 async command => {
-                    var parameters = MoLibrary.ReadCommandParameter(command);
+                    Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
                     bool onlyOpen = parameters.GetCastedValueOrDefault("only-open-carts", x => Convert.ToBoolean(x), false);
@@ -219,7 +219,7 @@ namespace HoloSimpID
             },
             { "get-cart-stats-by-id",
                 async command => {
-                    var parameters = MoLibrary.ReadCommandParameter(command);
+                    Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
                     int cartId = parameters.GetCastedValueOrDefault("cart-id", -1);
@@ -277,7 +277,7 @@ namespace HoloSimpID
             
             { "register-me",
                 async command => {
-                    var parameters = MoLibrary.ReadCommandParameter(command);
+                    Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
 
                     string userName = command.User.Username;
                     string nickname = parameters.GetCastedValueOrDefault("nickname", x => Convert.ToString(x), string.Empty);

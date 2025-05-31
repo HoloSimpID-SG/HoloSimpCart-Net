@@ -8,7 +8,6 @@ namespace HoloSimpID
     {
         private static NpgsqlDataSource dataSource;
 
-
         public const string sqlTableCarts = "carts";
         public const string sqlTableSimps = "simps";
         public const string sqlTableCartItems = "cart_items";
@@ -23,16 +22,17 @@ namespace HoloSimpID
 
         public static async Task LoadDB()
         {
-            Console.WriteLine("Loading Database");
+            Console.WriteLine("Loading Database. Let us reminisce about Minator Aqua.");
             try
             {
-                using (var sqlConnection = await dataSource.OpenConnectionAsync())
-                {
-                    Simp.DeserializeAll(sqlConnection);
-                    Cart.DeserializeAll(sqlConnection);
-                    Console.WriteLine("Database Loaded Succesfully, HUMU");
-                    return;
-                }
+                // Using will ensure the connection is disposed of properly
+                // ..prevents memory leaks and connection pool exhaustion.
+                using var sqlConnection = await dataSource.OpenConnectionAsync();
+
+                Simp.DeserializeAll(sqlConnection);
+                Cart.DeserializeAll(sqlConnection);
+                Console.WriteLine("Database Loaded Successfully, HUMU");
+                return;
             }
             catch (PostgresException ex) when (ex.SqlState == "3D000")
             {
@@ -56,33 +56,30 @@ namespace HoloSimpID
             sqlCommands.AddRange(Simp.SerializeAll());
             sqlCommands.AddRange(Cart.SerializeAll());
 
-            using (var sqlConnection = await dataSource.OpenConnectionAsync())
+            // Using will ensure the connection is disposed of properly
+            // ..prevents memory leaks and connection pool exhaustion.
+            using var sqlConnection = await dataSource.OpenConnectionAsync();
+            using var transaction = await sqlConnection.BeginTransactionAsync();
+            try
             {
-                using (var transaction = sqlConnection.BeginTransaction())
+                foreach (var cmd in sqlCommands)
                 {
-                    try
-                    {
-                        foreach (var cmd in sqlCommands)
-                        {
-                            cmd.Connection = sqlConnection;
-                            cmd.Transaction = transaction;
-                            await cmd.ExecuteNonQueryAsync();
-                        }
-                        await transaction.CommitAsync();
-                        Console.WriteLine("Database Saved Successfully, HUMU");
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        
-                        StringBuilder strErr = new();
-                        strErr.AppendLine($"Error saving Database: ");
-                        strErr.AppendLine($"{ex.Message}");
-                        strErr.AppendLine($" {ex.StackTrace}");
-                        Console.WriteLine(strErr);
-                    }
-
+                    cmd.Connection = sqlConnection;
+                    cmd.Transaction = transaction;
+                    await cmd.ExecuteNonQueryAsync();
                 }
+                await transaction.CommitAsync();
+                Console.WriteLine("Database Saved Successfully, HUMU");
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+
+                StringBuilder strErr = new();
+                strErr.AppendLine($"Error saving Database: ");
+                strErr.AppendLine($"{ex.Message}");
+                strErr.AppendLine($" {ex.StackTrace}");
+                Console.WriteLine(strErr);
             }
 
             Console.WriteLine("Database Saved");
@@ -117,41 +114,35 @@ namespace HoloSimpID
                 }
             }
         }
-
         public static async Task RunSqlCommand(IEnumerable<NpgsqlCommand> sqlCommands)
         {
-            using (var sqlConnection = await dataSource.OpenConnectionAsync())
+            using var sqlConnection = await dataSource.OpenConnectionAsync();
+            using var transaction = await sqlConnection.BeginTransactionAsync();
+            string lastSqlCommand = string.Empty;
+            try
             {
-                using (var transaction = sqlConnection.BeginTransaction())
+                foreach (var cmd in sqlCommands)
                 {
-                    string lastSqlCommand = string.Empty;
-                    try
-                    {
-                        foreach (var cmd in sqlCommands)
-                        {
-                            lastSqlCommand = cmd.CommandText;
-                            cmd.Connection = sqlConnection;
-                            cmd.Transaction = transaction;
-                            await cmd.ExecuteNonQueryAsync();
-                        }
-                        await transaction.CommitAsync();
-                        Console.WriteLine("All SQL Commands Executed Successfully, HUMU");
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-
-                        StringBuilder strErr = new();
-                        strErr.AppendLine($"Error running SqlCommand:");
-                        strErr.AppendLine($"Last SQL Command: {lastSqlCommand}");
-                        strErr.AppendLine($"Error Details:");
-                        strErr.AppendLine($"{ex.Message}");
-                        strErr.AppendLine($" {ex.StackTrace}");
-                        Console.WriteLine(strErr);
-                    }
+                    lastSqlCommand = cmd.CommandText;
+                    cmd.Connection = sqlConnection;
+                    cmd.Transaction = transaction;
+                    await cmd.ExecuteNonQueryAsync();
                 }
+                await transaction.CommitAsync();
+                Console.WriteLine("All SQL Commands Executed Successfully, HUMU");
+            }
+            catch (Exception ex)
+            {
+                transaction.Rollback();
+
+                StringBuilder strErr = new();
+                strErr.AppendLine($"Error running SqlCommand:");
+                strErr.AppendLine($"Last SQL Command: {lastSqlCommand}");
+                strErr.AppendLine($"Error Details:");
+                strErr.AppendLine($"{ex.Message}");
+                strErr.AppendLine($" {ex.StackTrace}");
+                Console.WriteLine(strErr);
             }
         }
-
     }
 }

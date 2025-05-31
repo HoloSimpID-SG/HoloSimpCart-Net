@@ -9,9 +9,6 @@ namespace HoloSimpID
 {
     public static partial class MoLibrary
     {
-        public static string ToNpgsqlString(this string str) => '\'' + str.Replace("'", "''") + '\'';
-        public static string ToNpgsqlDate(this DateTime dateTime) => '\'' + $"{dateTime:o}" + '\'';
-
         /// <summary>
         /// <inheritdoc cref="GetCastedValueOrDefault{TKey, TValue}(IDictionary{TKey, object}, TKey, Func{object, TValue}, TValue)"/>
         /// </summary>

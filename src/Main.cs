@@ -27,29 +27,40 @@ namespace HoloSimpID
 
         public static async Task Main()
         {
+            //-+-+-+-+-+-+-+-+
+            // Starting up the Discord Bot
+            // ..these are event listeners
+            //-+-+-+-+-+-+-+-+
             client = new DiscordSocketClient();
             commands = new CommandService();
-
-            //-+-+-+-+-+-+-+-+
-            // Logging
-            //-+-+-+-+-+-+-+-+
+            // .Log sends message to console
+            // ..typically for errors.
             client.Log += Log;
+            // .Ready tells when the bot is up and running,
+            // ..so it contains the primary setup logic.
             client.Ready += ClientReady;
+            // .SlashCommandExecuted gets fired whenever a command is received.
             client.SlashCommandExecuted += SlashCommandHandler;
+            //-+-+-+-+-+-+-+-+
 
             //-+-+-+-+-+-+-+-+
             // Load Database
             //-+-+-+-+-+-+-+-+
             await DbHandler.InitializeDB();
             await DbHandler.LoadDB();
+            //-+-+-+-+-+-+-+-+
 
             //-+-+-+-+-+-+-+-+
             // Start
             //-+-+-+-+-+-+-+-+
+            // Tells the bot to login
             await client.LoginAsync(TokenType.Bot, DiscordToken);
             await client.StartAsync();
+            //-+-+-+-+-+-+-+-+
 
-            // Block this task until the program is closed.
+            //-+-+-+-+-+-+-+-+
+            // Optional, but allows for more graceful shutdown
+            //-+-+-+-+-+-+-+-+
             Console.CancelKeyPress += (s, e) =>
             {
                 e.Cancel = true; // Prevent immediate process termination
@@ -59,6 +70,7 @@ namespace HoloSimpID
             {
                 cancellationTokenSource.Cancel();
             };
+            //-+-+-+-+-+-+-+-+
 
             try
             {
@@ -77,6 +89,9 @@ namespace HoloSimpID
         }
         public static async Task ClientReady()
         {
+            //-+-+-+-+-+-+-+-+
+            // Load the Guild and Thread/Channel
+            //-+-+-+-+-+-+-+-+
             guild = client.GetGuild(GuildId);
             threadTesting = guild.GetThreadChannel(ThreadId);
 
