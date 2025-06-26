@@ -32,6 +32,23 @@ namespace HoloSimpID
             // Indexer
             //-+-+-+-+-+-+-+-+
             #region Indexer
+            if (string.IsNullOrWhiteSpace(dcUserName))
+            {
+                Console.WriteLine("Empty dcUserName registration detected, skipping.");
+                return;
+            }
+
+            if(uDexSimps.ContainsKey(uDex))
+            {
+                Console.WriteLine($"Simp with dcUserName '{uDex}' already exists, skipping registration.");
+                return;
+            }
+            if (uGuidSimps.ContainsKey(dcUserName))
+            {
+                Console.WriteLine($"Simp with dcUserName '{dcUserName}' already exists, skipping registration.");
+                return;
+            }
+
             UDex = indexer++;
             uDexSimps.Add(uDex, this);
             uGuidSimps.Add(dcUserName, this);

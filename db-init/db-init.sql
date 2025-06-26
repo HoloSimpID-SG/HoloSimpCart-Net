@@ -16,6 +16,14 @@ CREATE TABLE IF NOT EXISTS simps (
   simp_name TEXT NOT NULL
 );
 
+INSERT INTO simps (u_dex, dc_user_name, simp_name) VALUES
+(0, 'jagerking779', 'The Guy who owes Yadi a Hina Standee'),
+(1, 'sirru248', 'Fake Developer'),
+(2, 'mastermindoverride', 'Mastermind Override'),
+(3, 'amdrandom', 'Not NVIDIA Random'),
+(4, 'ekavins.', 'kavinsen'),
+(5, 'theketilyst', 'Cat');
+
 CREATE TABLE IF NOT EXISTS carts (
   u_dex SERIAL PRIMARY KEY,
   cart_name TEXT NOT NULL,

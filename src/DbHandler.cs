@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Text;
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
 namespace HoloSimpID
@@ -7,11 +8,20 @@ namespace HoloSimpID
     public static class DbHandler
     {
         private static NpgsqlDataSource dataSource;
+        private static AppDbContext dbContext;
 
         public const string sqlTableCarts = "carts";
         public const string sqlTableSimps = "simps";
         public const string sqlTableCartItems = "cart_items";
         
+        public static async Task InitEntityDB()
+        {
+
+            var builder = new DbContextOptionsBuilder<AppDbContext>();
+            builder.UseNpgsql(Environment.GetEnvironmentVariable("SQL_CONNECTION"));
+            dbContext = new AppDbContext(builder.Options);
+        }
+
         public static async Task InitializeDB()
         {
             string SqlConnection = Environment.GetEnvironmentVariable("SQL_CONNECTION");
@@ -19,7 +29,6 @@ namespace HoloSimpID
             dataSourceBuilder.MapComposite<Item>("item_type");
             dataSource = dataSourceBuilder.Build();
         }
-
         public static async Task LoadDB()
         {
             Console.WriteLine("Loading Database. Let us reminisce about Minator Aqua.");
@@ -144,5 +153,6 @@ namespace HoloSimpID
                 Console.WriteLine(strErr);
             }
         }
+        */
     }
 }
