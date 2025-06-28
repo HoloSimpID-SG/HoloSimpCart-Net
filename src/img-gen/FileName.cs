@@ -2,6 +2,7 @@
 
 namespace HoloSimpID
 {
+    /*
     public class FileName
     {
         public static void GenerateInfographicForCart(Cart cart)
@@ -37,12 +38,12 @@ namespace HoloSimpID
 
             }
 
-            //int height =
-            //    16 + // Top Padding
-            //    72 + // Title Block
-            //    16 + // Tilte to cart padding
-            //    56 * itemCount +
-            //    16; // Bottom Padding
+            int height =
+                16 + // Top Padding
+                72 + // Title Block
+                16 + // Tilte to cart padding
+                56 * itemCount +
+                16; // Bottom Padding
             int width = 320;
 
             using var surface = SKSurface.Create(new SKImageInfo(width, height));
@@ -95,5 +96,5 @@ namespace HoloSimpID
                 IsAntialias = true
             };
         }
-    }
+    }*/
 }

@@ -1,30 +1,19 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-public class CartItems
+namespace HoloSimpID
 {
-    [Key]
-    public int cartUDex { get; set; }
-    [Key]
-    public int simpUDex { get; set; }
-    [Column(TypeName = "jsonb[]")]
-    public List<string> itemJson { get; set; } = new();
-    [Column(TypeName = "int[]")]
-    public List<int> quantity { get; set; } = new();
-}
-
-public class Item
-{
-    public string itemName;
-    public string itemLink;
-    public double priceSGD;
-
-    public Item(string itemName, string itemLink = "", double priceSGD = 0)
+    public class CartItems
     {
-        this.itemName = itemName;
-        this.itemLink = itemLink;
-        this.priceSGD = priceSGD;
-    }
+        public int cartDex { get; set; }
+        public int simpDex { get; set; }
+        [ForeignKey("cartDex")]
+        public Cart Cart { get; set; }
 
-    public override string ToString() => itemName.Hyperlink(itemLink);
+        [ForeignKey("simpDex")]
+        public Simp Simp { get; set; }
+        [Column(TypeName = "jsonb")]
+        public List<Item> Items { get; set; } = new();
+        public List<int> Quantities { get; set; } = new();
+    }
 }

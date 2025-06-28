@@ -1,19 +1,19 @@
-﻿using Discord;
+﻿using System.Diagnostics;
+using System.Text;
+using Discord;
 using Discord.Commands;
 using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
-using System;
-using System.Diagnostics;
-using System.Text;
 
 namespace HoloSimpID
 {
     public class CartBot
     {
-        private static string DiscordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
-        private static ulong GuildId = ulong.Parse(Environment.GetEnvironmentVariable("GUILD_ID"));
-        private static ulong ThreadId = ulong.Parse(Environment.GetEnvironmentVariable("THREAD_ID"));
+        private static readonly string DiscordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+        private static readonly ulong GuildId = ulong.Parse(Environment.GetEnvironmentVariable("GUILD_ID"));
+        private static readonly ulong ThreadId = ulong.Parse(Environment.GetEnvironmentVariable("THREAD_ID"));
+        private static readonly CancellationTokenSource cancellationTokenSource = new();
 
         //-+-+-+-+-+-+-+-+
         // Discord Component
@@ -22,7 +22,6 @@ namespace HoloSimpID
         public static SocketGuild guild { get; private set; }
         public static SocketThreadChannel threadTesting { get; private set; }
         public static CommandService commands { get; private set; }
-        private static readonly CancellationTokenSource cancellationTokenSource = new();
         public static CancellationToken cancellationToken => cancellationTokenSource.Token;
 
         public static async Task Main()
@@ -46,8 +45,20 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             // Load Database
             //-+-+-+-+-+-+-+-+
-            await DbHandler.InitializeDB();
-            await DbHandler.LoadDB();
+            //try 
+            //{
+            //    await AppDbContext.EnsureMigrated();
+        
+            //    // Your existing bot startup code...
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine($"Error during startup: {ex.Message}");
+            //    throw;
+            //}
+
+            //await DbHandler.InitializeDB();
+            //await DbHandler.LoadDB();
             //-+-+-+-+-+-+-+-+
 
             //-+-+-+-+-+-+-+-+
@@ -66,10 +77,7 @@ namespace HoloSimpID
                 e.Cancel = true; // Prevent immediate process termination
                 cancellationTokenSource.Cancel();
             };
-            AppDomain.CurrentDomain.ProcessExit += async (s, e) =>
-            {
-                cancellationTokenSource.Cancel();
-            };
+            AppDomain.CurrentDomain.ProcessExit += async (s, e) => { cancellationTokenSource.Cancel(); };
             //-+-+-+-+-+-+-+-+
 
             try
@@ -82,11 +90,12 @@ namespace HoloSimpID
                 // Handle cancellation gracefully
                 await threadTesting.SendMessageAsync("Hina, Nemui");
 
-                await DbHandler.SaveAllDB();
+                //await DbHandler.SaveAllDB();
                 await client.LogoutAsync();
                 await client.StopAsync();
             }
         }
+
         public static async Task ClientReady()
         {
             //-+-+-+-+-+-+-+-+
@@ -105,30 +114,28 @@ namespace HoloSimpID
             // ..so that you buffons don't forget :ayamewheeze:
             // Checks if each command have a response and vice-versa
             //-+-+-+-+-+-+-+-+
-            bool isValid = true;
+            var isValid = true;
             Console.WriteLine();
-            Console.WriteLine($"Running Command Validation.");
+            Console.WriteLine("Running Command Validation.");
             List<string> commandName = new();
-            foreach (var command in CommandConsts.commands)
+            foreach (SlashCommandBuilder command in CommandConsts.commands)
             {
                 commandName.Add(command.Name);
-                if(CommandConsts.responses.ContainsKey(command.Name))
-                    continue;
-                else
+                if (CommandConsts.responses.ContainsKey(command.Name))
                 {
-                    isValid = false;
-                    Console.WriteLine($"Command: {command.Name}, does not have a response.");
+                    continue;
                 }
+                isValid = false;
+                Console.WriteLine($"Command: {command.Name}, does not have a response.");
             }
-            foreach (var respond in CommandConsts.responses)
+            foreach (KeyValuePair<string, Func<SocketSlashCommand, Task>> respond in CommandConsts.responses)
             {
                 if (commandName.Contains(respond.Key))
-                    continue;
-                else
                 {
-                    isValid = false;
-                    Console.WriteLine($"Response: {respond.Key}, does not have a command.");
+                    continue;
                 }
+                isValid = false;
+                Console.WriteLine($"Response: {respond.Key}, does not have a command.");
             }
             if (!isValid)
             {
@@ -146,23 +153,25 @@ namespace HoloSimpID
             await guild.DeleteApplicationCommandsAsync();
 
             //-+-+-+-+-+-+-+-+
-            foreach (var command in CommandConsts.commands)
+            foreach (SlashCommandBuilder command in CommandConsts.commands)
             {
                 try
                 {
                     Console.WriteLine($"Registering {command.Name}");
                     await guild.CreateApplicationCommandAsync(command.Build());
+                    Console.WriteLine($"Finished Registering {command.Name}");
                 }
                 catch (HttpException exception)
                 {
-                    var json = JsonConvert.SerializeObject(exception.Errors, Formatting.Indented);
+                    string json = JsonConvert.SerializeObject(exception.ToStringDemystified(), Formatting.Indented);
 
                     Console.WriteLine("Something Broke, idk... this is the first time I am making a bot");
                     Console.WriteLine(json);
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine($"Something Broke, idk... this is the first time I am making a bot. Here's the message:\n{e.Message}\nGo Figure or Go Vibe.");
+                    Console.WriteLine(
+                        $"Something Broke, idk... this is the first time I am making a bot. Here's the message:\n{e.ToStringDemystified()}\nGo Figure or Go Vibe.");
                 }
             }
 
@@ -172,18 +181,18 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+-+
             await threadTesting.SendMessageAsync("Hina caffeinated, ready to serve.");
         }
+
         private static async Task SlashCommandHandler(SocketSlashCommand command)
         {
             try
             {
-                await Task.Run(() => CommandConsts.responses[command.Data.Name].Invoke(command));
+                await CommandConsts.responses[command.Data.Name].Invoke(command);
             }
             catch (Exception e)
             {
                 StringBuilder strErr = new();
-                strErr.AppendLine($"Error when performing command: ");
-                strErr.AppendLine($" {e.Message}");
-                strErr.AppendLine($"  {e.StackTrace}");
+                strErr.AppendLine("Error when performing command:");
+                strErr.AppendLine($"{e.ToStringDemystified()}");
             }
         }
 

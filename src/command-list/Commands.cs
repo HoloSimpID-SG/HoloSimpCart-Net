@@ -3,8 +3,8 @@
 namespace HoloSimpID
 {
     /// <summary>
-    /// <br/> - <strong>COMMANDS WA KOKO DESUWA</strong>
-    /// <br/> - Even Gio's Biology Brain should be able to understand this.
+    ///     <br /> - <strong>COMMANDS WA KOKO DESUWA</strong>
+    ///     <br /> - Even Gio's Biology Brain should be able to understand this.
     /// </summary>
     public static partial class CommandConsts
     {
@@ -18,8 +18,8 @@ namespace HoloSimpID
                 .WithDescription("Where's my Hina, Gio")
                 // This becomes the parameters, staring with name, type and then hint
                 // ..can add multiple parameters by repeating the line below
-                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", isRequired: true)
-                , // Move the comma here to make it easier to add new Parameters
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio",
+                    true), // Move the comma here to make it easier to add new Parameters
             /// Once you are done adding it here, go to <see cref="responses"/>
 
             //-+-+-+-+-+-+-+-+
@@ -28,13 +28,11 @@ namespace HoloSimpID
             new SlashCommandBuilder()
                 .WithName("get-cart-by-name")
                 .WithDescription("Where's my Hina, Gio")
-                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", isRequired: true)
-                ,
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true),
             new SlashCommandBuilder()
                 .WithName("get-cart-by-id")
                 .WithDescription("Where's my Hina, Gio")
-                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", isRequired: true)
-                ,
+                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", true),
 
             //-+-+-+-+-+-+-+-+
             // Close Cart Commands
@@ -42,58 +40,54 @@ namespace HoloSimpID
             new SlashCommandBuilder()
                 .WithName("close-cart-by-name")
                 .WithDescription("Where's my Hina, Gio")
-                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", isRequired: true)
-                ,
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true),
             new SlashCommandBuilder()
                 .WithName("close-cart-by-id")
                 .WithDescription("Where's my Hina, Gio")
-                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", isRequired: true)
-                ,
-            
-            //-+-+-+-+-+-+-+-+
-            // Add Item to Cart Commands
-            //-+-+-+-+-+-+-+-+
-            new SlashCommandBuilder()
-                .WithName("add-item-by-id")
-                .WithDescription("Where's my Hina, Gio")
-                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", isRequired: true)
-                .AddOption("item-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", isRequired: true)
-                .AddOption("item-link", ApplicationCommandOptionType.String, "Where's my Hina, Gio", isRequired: false)
-                .AddOption("item-price", ApplicationCommandOptionType.Number, "Where's my Hina, Gio", isRequired: false)
-                .AddOption("quantity", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", isRequired: false)
-                ,
-            new SlashCommandBuilder()
-                .WithName("add-item-by-name")
-                .WithDescription("Where's my Hina, Gio")
-                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", isRequired: true)
-                .AddOption("item-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", isRequired: true)
-                .AddOption("item-link", ApplicationCommandOptionType.String, "Where's my Hina, Gio", isRequired: false)
-                .AddOption("item-price", ApplicationCommandOptionType.Number, "Where's my Hina, Gio", isRequired: false)
-                .AddOption("quantity", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", isRequired: false)
-                ,
-            
+                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", true),
+
             //-+-+-+-+-+-+-+-+
             // List All Carts
             //-+-+-+-+-+-+-+-+
             new SlashCommandBuilder()
                 .WithName("list-all-carts")
                 .WithDescription("Where's my Hina, Gio")
-                .AddOption("only-open-carts", ApplicationCommandOptionType.Boolean, "Where's my Hina, Gio", isRequired: true)
-                ,
+                .AddOption("only-open-carts", ApplicationCommandOptionType.Boolean, "Where's my Hina, Gio", true),
 
             new SlashCommandBuilder()
                 .WithName("get-cart-stats-by-id")
                 .WithDescription("Where's my Hina, Gio")
-                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", isRequired: true)
-                ,
-
-                
+                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", true),
 
             new SlashCommandBuilder()
                 .WithName("register-me")
                 .WithDescription("Where's my Hina, Gio")
-                .AddOption("nickname", ApplicationCommandOptionType.String, "Where's my Hina, Gio", isRequired: true)
-                ,
+                .AddOption("nickname", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true),
+            
+            new SlashCommandBuilder()
+                .WithName("bau-bau")
+                .WithDescription("Where's my Hina, Gio")
+                .AddOption("how-many", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", true),
+
+            //-+-+-+-+-+-+-+-+
+            // Add Item to Cart Commands
+            //-+-+-+-+-+-+-+-+
+            new SlashCommandBuilder()
+                .WithName("add-item-by-id")
+                .WithDescription("Where's my Hina, Gio")
+                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", true)
+                .AddOption("item-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true)
+                .AddOption("item-link", ApplicationCommandOptionType.String, "Where's my Hina, Gio", false)
+                .AddOption("item-price", ApplicationCommandOptionType.Number, "Where's my Hina, Gio", false)
+                .AddOption("quantity", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", false),
+            new SlashCommandBuilder()
+                .WithName("add-item-by-name")
+                .WithDescription("Where's my Hina, Gio")
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true)
+                .AddOption("item-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true)
+                .AddOption("item-link", ApplicationCommandOptionType.String, "Where's my Hina, Gio", false)
+                .AddOption("item-price", ApplicationCommandOptionType.Number, "Where's my Hina, Gio", false)
+                .AddOption("quantity", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", false),
         };
     }
 }
