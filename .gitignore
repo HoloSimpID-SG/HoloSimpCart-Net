@@ -134,5 +134,8 @@ _NCrunch*
 
 .vs/
 .vscode/
+.idea/
+.editorconfig
 
+efbundle
 .env*

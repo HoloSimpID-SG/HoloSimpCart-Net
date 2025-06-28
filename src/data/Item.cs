@@ -1,25 +1,21 @@
-﻿
-using System.Collections.Generic;
-using NpgsqlTypes;
+﻿using NpgsqlTypes;
 
 namespace HoloSimpID
 {
-    public class Item
+    [Serializable]
+    public struct Item
     {
-        [PgName("item_name")]
-        public string itemName;
-        [PgName("item_link")]
-        public string itemLink;
-        [PgName("price_sgd")]
-        public double priceSGD;
+        public string Name { get; set; }
+        public string Link { get; set; }
+        public decimal PriceSGD { get; set; }
 
-        public Item(string itemName, string itemLink = "", double priceSGD = 0)
+        public Item(string name, string link = "", decimal priceSGD = 0m)
         {
-            this.itemName = itemName;
-            this.itemLink = itemLink;
-            this.priceSGD = priceSGD;
+            this.Name = name;
+            this.Link = link;
+            this.PriceSGD = priceSGD;
         }
 
-        public override string ToString() => itemName.Hyperlink(itemLink);
+        public override string ToString() => Name.Hyperlink(Link);
     }
 }
