@@ -28,25 +28,27 @@ services:
       database:
         condition: service_healthy
 
-  migrate:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    depends_on:
-      database:
-        condition: service_healthy
-    entrypoint: [ "./efbundle" ]
-    command: [ "--connection", "${SQL_CONNECTION}" ]
-    environment:
-      SQL_CONNECTION: ${SQL_CONNECTION}
+  #migrate:
+  #  build:
+  #    context: .
+  #    dockerfile: Dockerfile
+  #  depends_on:
+  #    database:
+  #      condition: service_healthy
+  #  entrypoint: [ "./efbundle" ]
+  #  command: [ "--connection", "${SQL_CONNECTION}" ]
+  #  environment:
+  #    SQL_CONNECTION: ${SQL_CONNECTION}
   
   discord-bot:
     build:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      migrate:
-        condition: service_completed_successfully
+      database:
+        condition: service_healthy
+      #migrate:
+      #  condition: service_completed_successfully
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       GUILD_ID: ${GUILD_ID}

@@ -8,38 +8,54 @@ namespace HoloSimpID
 {
     public partial class Cart
     {
-        public async Task<string> GetDetails(AppDbContext? db = null)
+        public async Task<string> GetDetails(AppDbContext? db = null) { return await GetDetails(uDex, db); }
+
+        public static async Task<string> GetDetails(int uDex, AppDbContext? db = null)
         {
             bool localContext = db == null;
             db ??= new AppDbContext();
 
+            Cart? cart = await TryGet(uDex, db: db);
+
+            if (cart == null)
+            {
+                return string.Empty;
+            }
+
+            Simp? owner = await Simp.TryGet(cart.Owner.uDex, db: db);
+
             StringBuilder strResult = new();
-            strResult.AppendLine($"# {CartName} (id: {uDex})");
-            strResult.AppendLine($"Owned by: {Owner.simpName}");
+            strResult.AppendLine($"# {cart.CartName} (id: {uDex})");
+            strResult.AppendLine($"Owned by: {owner!.simpName}");
             strResult.Append("Status: ");
-            strResult.AppendLine($"{Status}");
-            strResult.AppendLine($"Opened at: {DateOpen}");
+            strResult.AppendLine($"{cart.Status}");
+            strResult.AppendLine($"Opened at: {cart.DateOpen.ToLocalTime()}");
             strResult.AppendLine("Item List:");
 
             IEnumerable<CartItems> cartItems = await db.CartItems
                 .Where(x => x.cartDex == uDex)
+                .Include(c => c.Cart)
+                .Include(c => c.Simp)
                 .ToListAsync();
-            foreach (CartItems simpCart in cartItems)
+            if (!cartItems.IsNullOrEmpty())
             {
-                Simp? simp = await Simp.TryGet(simpCart.simpDex);
-                if (simp == null)
+                foreach (CartItems simpCart in cartItems)
                 {
-                    continue;
-                }
+                    Simp? simp = await Simp.TryGet(simpCart.simpDex);
+                    if (simp == null)
+                    {
+                        continue;
+                    }
 
-                strResult.AppendLine($"- {simp}:");
-                for (var i = 0; i < simpCart.Items.Count; i++)
-                {
-                    strResult.Append("  - ")
-                        .Append(simpCart.Items[i])
-                        .Append(" (").Append(simpCart.Items[i].PriceSGD.toCurrency()).Append(")")
-                        .Append(Consts.multiplierSign).Append(simpCart.Quantities[i])
-                        .AppendLine();
+                    strResult.AppendLine($"- {simp}:");
+                    for (var i = 0; i < simpCart.Items.Count; i++)
+                    {
+                        strResult.Append("  - ")
+                            .Append(simpCart.Items[i])
+                            .Append(" (").Append(simpCart.Items[i].PriceSGD.toCurrency()).Append(")")
+                            .Append(Consts.multiplierSign).Append(simpCart.Quantities[i])
+                            .AppendLine();
+                    }
                 }
             }
             if (localContext)
@@ -77,6 +93,7 @@ namespace HoloSimpID
 
             Cart? cart = await db.Carts
                 .Where(predicate)
+                .Include(c => c.Owner)
                 .SingleOrDefaultAsync(c => c.uDex == uDex);
 
             if (localContext)
@@ -95,6 +112,7 @@ namespace HoloSimpID
 
             Cart? cart = await db.Carts
                 .Where(predicate)
+                .Include(c => c.Owner)
                 .SingleOrDefaultAsync(c => c.CartName == cartName);
 
             if (localContext)
@@ -128,7 +146,7 @@ namespace HoloSimpID
             await db.Carts
                 .Where(cart => cart.uDex == uDex)
                 .ExecuteUpdateAsync(setter => setter
-                    .SetProperty(cart => cart.DateClose, DateTime.Now)
+                    .SetProperty(cart => cart.DateClose, DateTime.UtcNow)
                 );
 
             if (localContext)
@@ -163,8 +181,6 @@ namespace HoloSimpID
                 {
                     cartDex = cart.uDex,
                     simpDex = simp.uDex,
-                    Cart = cart,
-                    Simp = simp,
                     Items = [item],
                     Quantities = [quantity]
                 };

@@ -33,7 +33,11 @@ namespace HoloSimpID
                         string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
 
                         // Then, you write the logic here
-                        Simp owner = await Simp.TryGet(userName) ?? await Simp.RegisterSimp(userName);
+                        Simp? owner = await Simp.TryGet(userName);
+                        if (owner == null)
+                        {
+                            owner = await Simp.RegisterSimp(userName);
+                        }
 
                         var cart = await Cart.OpenCart(owner, cartName);
 

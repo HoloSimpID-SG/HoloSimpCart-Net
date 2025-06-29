@@ -1,11 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using MMOR.Utils.Utilities;
 
 namespace HoloSimpID
 {
     public partial class Simp
     {
         [Key] public int uDex { get; set; }
-        public string dcUserName { get; set; }
+        public string dcUserName { get; set; } = null!;
         public string simpName { get; set; }
         public string profilePicPath { get; set; }
 
@@ -16,7 +17,7 @@ namespace HoloSimpID
             return new Simp
             {
                 dcUserName = dcUserName,
-                simpName = simpName,
+                simpName = simpName.IsNullOrEmpty() ? dcUserName : simpName,
                 profilePicPath = profilePicPath
             };
         }

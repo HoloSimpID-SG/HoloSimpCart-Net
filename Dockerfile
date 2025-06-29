@@ -7,8 +7,12 @@ WORKDIR /discord-bot
 # Copy the pre-built application from the host into the container
 # This path is relative to the build context, which is '/YourConsoleApp' if built from there.
 COPY ./publish ./
-COPY ./efbundle ./efbundle
-RUN chmod +x ./efbundle
+# COPY ./efbundle ./efbundle
+# RUN chmod +x ./efbundle
+
+# Setting Locale and Encoding
+ENV LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8
 
 # Define the entry point for the application
 # ENTRYPOINT ["sh", "-c", "./efbundle && dotnet RuTakingTooLong.dll"]

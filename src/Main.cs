@@ -29,15 +29,15 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             // Load Database
             //-+-+-+-+-+-+-+-+
-            //try 
-            //{
-            //    await AppDbContext.EnsureMigrated();
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine($"Error during EF Migration:{ex.ToStringDemystified()}");
-            //    throw;
-            //}
+            try
+            {
+                await AppDbContext.EnsureMigrated();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during EF Migration:{ex.ToStringDemystified()}");
+                throw;
+            }
             //-+-+-+-+-+-+-+-+
             // Starting up the Discord Bot
             // ..these are event listeners

@@ -11,17 +11,17 @@ namespace HoloSimpID
         //-+-+-+-+-+-+-+-+
         // Cart Details
         //-+-+-+-+-+-+-+-+
-        public string CartName { get; set; }
+        public string CartName { get; set; } = null!;
         public int OwnerDex { get; set; }
-        [ForeignKey("OwnerDex")] public Simp Owner { get; set; }
+        [ForeignKey("OwnerDex")] public Simp Owner { get; set; } = null!;
 
         //-+-+-+-+-+-+-+-+
         // Dates
         //-+-+-+-+-+-+-+-+
-        public DateTime DateOpen { get; set; }
-        public DateTime DatePlan { get; set; }
-        public DateTime DateClose { get; set; }
-        public DateTime DateDelivered { get; set; }
+        [Column(TypeName = "timestamptz")] public DateTime DateOpen { get; set; }
+        [Column(TypeName = "timestamptz")] public DateTime DatePlan { get; set; }
+        [Column(TypeName = "timestamptz")] public DateTime DateClose { get; set; }
+        [Column(TypeName = "timestamptz")] public DateTime DateDelivered { get; set; }
 
         public enum CartStatus
         {
@@ -49,12 +49,12 @@ namespace HoloSimpID
         {
             return new Cart
             {
-                Owner = owner,
+                OwnerDex = owner.uDex,
                 CartName = cartName,
-                DateOpen = DateTime.Now,
-                DatePlan = datePlan ?? DateTime.Now + DefaultPlan,
-                DateClose = DateTime.MinValue,
-                DateDelivered = DateTime.MinValue,
+                DateOpen = DateTime.UtcNow,
+                DatePlan = datePlan ?? DateTime.UtcNow + DefaultPlan,
+                DateClose = DateTime.MinValue.ToUniversalTime(),
+                DateDelivered = DateTime.MinValue.ToUniversalTime(),
                 ShippingCost = shippingCost
             };
         }
