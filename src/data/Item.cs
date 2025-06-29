@@ -1,6 +1,4 @@
-﻿using NpgsqlTypes;
-
-namespace HoloSimpID
+﻿namespace HoloSimpID
 {
     [Serializable]
     public struct Item
@@ -11,11 +9,11 @@ namespace HoloSimpID
 
         public Item(string name, string link = "", decimal priceSGD = 0m)
         {
-            this.Name = name;
-            this.Link = link;
-            this.PriceSGD = priceSGD;
+            Name = name;
+            Link = link;
+            PriceSGD = priceSGD;
         }
 
-        public override string ToString() => Name.Hyperlink(Link);
+        public override string ToString() { return Name.Hyperlink(Link); }
     }
 }

@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Text;
 using Discord.WebSocket;
-using MMOR.Utils.Statistics;
 using MMOR.Utils.Utilities;
 
 namespace HoloSimpID
@@ -158,7 +157,7 @@ namespace HoloSimpID
                             return;
                         }
                         Simp simp = await Simp.TryGet(userName) ?? await Simp.RegisterSimp(userName);
-                        
+
                         var item = new Item(itemName, itemLink, (decimal)itemPrice);
                         if (!await cart.UpsertItem(simp, item, quantity))
                         {
@@ -310,8 +309,8 @@ namespace HoloSimpID
 
                         string userName = command.User.Username;
                         string nickname = parameters
-                            .GetCastedValueOrDefault("nickname", 
-                                x => Convert.ToString(x), 
+                            .GetCastedValueOrDefault("nickname",
+                                x => Convert.ToString(x),
                                 string.Empty);
 
                         StringBuilder strResult = new();
@@ -347,12 +346,16 @@ namespace HoloSimpID
                         string userName = command.User.Username;
                         int count = parameters.GetCastedValueOrDefault("how-many", 1);
                         if (userName == "jagerking779")
+                        {
                             await command.RespondAsync("Beli Hina dulu baru bisa.");
+                        }
                         else
                         {
                             StringBuilder strResult = new();
-                            for(int i = 0; i < count; i++)
+                            for (var i = 0; i < count; i++)
+                            {
                                 strResult.AppendLine("Bau Bau");
+                            }
                             await command.RespondAsync(strResult.ToString());
                         }
                     }

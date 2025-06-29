@@ -35,11 +35,11 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    entrypoint: ["./efbundle"]
-    command: ["--connection", "${SQL_CONNECTION}"]
+    entrypoint: [ "./efbundle" ]
+    command: [ "--connection", "${SQL_CONNECTION}" ]
     environment:
       SQL_CONNECTION: ${SQL_CONNECTION}
-      
+  
   discord-bot:
     build:
       context: .

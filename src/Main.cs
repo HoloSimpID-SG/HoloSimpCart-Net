@@ -27,6 +27,18 @@ namespace HoloSimpID
         public static async Task Main()
         {
             //-+-+-+-+-+-+-+-+
+            // Load Database
+            //-+-+-+-+-+-+-+-+
+            //try 
+            //{
+            //    await AppDbContext.EnsureMigrated();
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine($"Error during EF Migration:{ex.ToStringDemystified()}");
+            //    throw;
+            //}
+            //-+-+-+-+-+-+-+-+
             // Starting up the Discord Bot
             // ..these are event listeners
             //-+-+-+-+-+-+-+-+
@@ -41,21 +53,6 @@ namespace HoloSimpID
             // .SlashCommandExecuted gets fired whenever a command is received.
             client.SlashCommandExecuted += SlashCommandHandler;
             //-+-+-+-+-+-+-+-+
-
-            //-+-+-+-+-+-+-+-+
-            // Load Database
-            //-+-+-+-+-+-+-+-+
-            //try 
-            //{
-            //    await AppDbContext.EnsureMigrated();
-        
-            //    // Your existing bot startup code...
-            //}
-            //catch (Exception ex)
-            //{
-            //    Console.WriteLine($"Error during startup: {ex.Message}");
-            //    throw;
-            //}
 
             //await DbHandler.InitializeDB();
             //await DbHandler.LoadDB();
@@ -96,7 +93,7 @@ namespace HoloSimpID
             }
         }
 
-        public static async Task ClientReady()
+        private static async Task ClientReady()
         {
             //-+-+-+-+-+-+-+-+
             // Load the Guild and Thread/Channel
@@ -114,6 +111,7 @@ namespace HoloSimpID
             // ..so that you buffons don't forget :ayamewheeze:
             // Checks if each command have a response and vice-versa
             //-+-+-+-+-+-+-+-+
+            #region Commands Validation
             var isValid = true;
             Console.WriteLine();
             Console.WriteLine("Running Command Validation.");
@@ -140,9 +138,8 @@ namespace HoloSimpID
             if (!isValid)
             {
                 throw new Exception("Commands and Responses are not in sync Haiyahhh.");
-                Console.WriteLine();
             }
-
+            #endregion
             //-+-+-+-+-+-+-+-+
             // Clear Commands
             // ..if not, it will retain already deleted commands

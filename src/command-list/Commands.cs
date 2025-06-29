@@ -63,7 +63,7 @@ namespace HoloSimpID
                 .WithName("register-me")
                 .WithDescription("Where's my Hina, Gio")
                 .AddOption("nickname", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true),
-            
+
             new SlashCommandBuilder()
                 .WithName("bau-bau")
                 .WithDescription("Where's my Hina, Gio")
@@ -87,7 +87,7 @@ namespace HoloSimpID
                 .AddOption("item-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true)
                 .AddOption("item-link", ApplicationCommandOptionType.String, "Where's my Hina, Gio", false)
                 .AddOption("item-price", ApplicationCommandOptionType.Number, "Where's my Hina, Gio", false)
-                .AddOption("quantity", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", false),
+                .AddOption("quantity", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", false)
         };
     }
 }

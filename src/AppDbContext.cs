@@ -1,9 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace HoloSimpID
@@ -37,8 +32,9 @@ namespace HoloSimpID
         {
             optionsBuilder
                 .UseNpgsql(Environment.GetEnvironmentVariable("SQL_CONNECTION"))
-                .LogTo(Console.WriteLine, LogLevel.Trace);//.EnableSensitiveDataLogging();
+                .LogTo(Console.WriteLine, LogLevel.Trace); //.EnableSensitiveDataLogging();
         }
+
         public static async Task EnsureMigrated()
         {
             using var context = new AppDbContext();
@@ -47,7 +43,6 @@ namespace HoloSimpID
                 await context.Database.MigrateAsync();
             }
         }
-
         #endregion
     }
 }

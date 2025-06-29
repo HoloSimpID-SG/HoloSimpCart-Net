@@ -1,6 +1,4 @@
-﻿using SkiaSharp;
-
-namespace HoloSimpID
+﻿namespace HoloSimpID
 {
     /*
     public class FileName
@@ -23,7 +21,7 @@ namespace HoloSimpID
                     16 + // Tilte to cart padding
                     56 * itemCount +
                     16; // Bottom Padding
-    
+
                 heights.Add(new Tuple<Simp, int>(simp, height));
 
                 if (simp == cartOwner)
@@ -56,7 +54,7 @@ namespace HoloSimpID
             int itemCount = cartItems.Count;
 
 
-            int height = 
+            int height =
                 16 + // Top Padding
                 72 + // Title Block
                 16 + // Tilte to cart padding
