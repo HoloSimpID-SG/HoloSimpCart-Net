@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 using Discord.WebSocket;
+using MMOR.Utils.Statistics;
 using MMOR.Utils.Utilities;
 
 namespace HoloSimpID
@@ -247,61 +248,64 @@ namespace HoloSimpID
                     "get-cart-stats-by-id",
                     async command =>
                     {
-                        await command.RespondAsync("Temporarily disabled.");
-                        //Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
-//
-                        //string userName = command.User.Username;
-                        //int cartId = parameters.GetCastedValueOrDefault("cart-id", -1);
-//
-                        //Cart? cart = await Cart.TryGet(cartId);
-                        //if (cart == null)
-                        //{
-                        //    await command.RespondAsync($"No Cart with id: {cartId} was found.");
-                        //    return;
-                        //}
-//
-                        //Dictionary<double, uint> itemFreqMap = new();
-                        //Dictionary<double, uint> simpFreqMap = new();
-                        //foreach (KeyValuePair<Simp, Dictionary<Item, uint>> simp in cart.cartItems)
-                        //{
-                        //    double totalSimp = 0;
-                        //    foreach (KeyValuePair<Item, uint> item in simp.Value)
-                        //    {
-                        //        totalSimp += item.Key.PriceSGD * item.Value;
-                        //        itemFreqMap.AddFrequency(item.Key.PriceSGD, item.Value);
-                        //    }
-                        //    simpFreqMap.AddFrequency(totalSimp);
-                        //}
-                        //if (itemFreqMap.IsNullOrEmpty() || simpFreqMap.IsNullOrEmpty())
-                        //{
-                        //    await command.RespondAsync("Cart was empty, pitiful weakling.");
-                        //    return;
-                        //}
+                        Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
 
-                        //TotalStatistics statsByItem = TotalStatistics.Calculate(itemFreqMap);
-                        //TotalStatistics statsBySimp = TotalStatistics.Calculate(simpFreqMap);
+                        string userName = command.User.Username;
+                        int cartId = parameters.GetCastedValueOrDefault("cart-id", -1);
 
-                        //StringBuilder strResult = new();
-                        //strResult.AppendLine($"# Statistics for Cart: {cart}");
-                        //strResult.AppendLine("## By Items:");
-                        //strResult.AppendLine($"Total Items: {statsByItem.Count:N0}");
-                        //strResult.AppendLine($"Average Cost: {statsByItem.Mean:C2}");
-                        //strResult.AppendLine($"Standard Deviation: {statsByItem.StandardDeviation:C2}");
-                        //strResult.AppendLine($"Gini Coefficient: {statsByItem.GiniCoefficient:P2}");
-                        //strResult.AppendLine($"Most Expensive: {statsByItem.Maximum:C2}");
-                        //strResult.AppendLine(
-                        //    $"Box Plot: {statsByItem.LowerFence:C2} <- [ {statsByItem.Q1:C2} | {statsByItem.Median:C2} | {statsByItem.Q3:C2} ] -> {statsByItem.UpperFence:C2}");
+                        Cart? cart = await Cart.TryGet(cartId);
+                        if (cart == null)
+                        {
+                            await command.RespondAsync($"No Cart with id: {cartId} was found.");
+                            return;
+                        }
 
-                        //strResult.AppendLine("## By Simps:");
-                        //strResult.AppendLine($"Total Perticipants: {statsBySimp.Count:N0}");
-                        //strResult.AppendLine($"Average Spending: {statsBySimp.Mean:C2}");
-                        //strResult.AppendLine($"Standard Deviation: {statsBySimp.StandardDeviation:C2}");
-                        //strResult.AppendLine($"Gini Coefficient: {statsBySimp.GiniCoefficient:P2}");
-                        //strResult.AppendLine($"Biggest Spender: {statsBySimp.Maximum:C2}");
-                        //strResult.AppendLine(
-                        //    $"Box Plot: {statsBySimp.LowerFence:C2} <- [ {statsBySimp.Q1:C2} | {statsBySimp.Median:C2} | {statsBySimp.Q3:C2} ] -> {statsBySimp.UpperFence:C2}");
+                        Dictionary<decimal, uint> itemFreqMap = new();
+                        Dictionary<decimal, uint> simpFreqMap = new();
+                        IReadOnlyList<CartItems> cartItems = await cart.TryGetCartItems();
+                        foreach (CartItems ci in cartItems)
+                        {
+                            decimal totalSimp = 0;
+                            int len = ci.Items.Count;
+                            for (var i = 0; i < len; i++)
+                            {
+                                decimal price = ci.Items[i].PriceSGD;
+                                var quantity = (uint)ci.Quantities[i];
+                                totalSimp += price * quantity;
+                                itemFreqMap.AddFrequency(price, quantity);
+                            }
+                            simpFreqMap.AddFrequency(totalSimp);
+                        }
+                        if (itemFreqMap.IsNullOrEmpty() || simpFreqMap.IsNullOrEmpty())
+                        {
+                            await command.RespondAsync("Cart was empty, pitiful weakling.");
+                            return;
+                        }
 
-                        //await command.RespondAsync($"{strResult}");
+                        TotalStatistics statsByItem = TotalStatistics.Calculate(itemFreqMap);
+                        TotalStatistics statsBySimp = TotalStatistics.Calculate(simpFreqMap);
+
+                        StringBuilder strResult = new();
+                        strResult.AppendLine($"# Statistics for Cart: {cart}");
+                        strResult.AppendLine("## By Items:");
+                        strResult.AppendLine($"Total Items: {statsByItem.Count:N0}");
+                        strResult.AppendLine($"Average Cost: {statsByItem.Mean:C2}");
+                        strResult.AppendLine($"Standard Deviation: {statsByItem.StandardDeviation:C2}");
+                        strResult.AppendLine($"Gini Coefficient: {statsByItem.GiniCoefficient:P2}");
+                        strResult.AppendLine($"Most Expensive: {statsByItem.Maximum:C2}");
+                        strResult.AppendLine(
+                            $"Box Plot: {statsByItem.LowerFence:C2} <- [ {statsByItem.Q1:C2} | {statsByItem.Median:C2} | {statsByItem.Q3:C2} ] -> {statsByItem.UpperFence:C2}");
+
+                        strResult.AppendLine("## By Simps:");
+                        strResult.AppendLine($"Total Perticipants: {statsBySimp.Count:N0}");
+                        strResult.AppendLine($"Average Spending: {statsBySimp.Mean:C2}");
+                        strResult.AppendLine($"Standard Deviation: {statsBySimp.StandardDeviation:C2}");
+                        strResult.AppendLine($"Gini Coefficient: {statsBySimp.GiniCoefficient:P2}");
+                        strResult.AppendLine($"Biggest Spender: {statsBySimp.Maximum:C2}");
+                        strResult.AppendLine(
+                            $"Box Plot: {statsBySimp.LowerFence:C2} <- [ {statsBySimp.Q1:C2} | {statsBySimp.Median:C2} | {statsBySimp.Q3:C2} ] -> {statsBySimp.UpperFence:C2}");
+
+                        await command.RespondAsync($"{strResult}");
                     }
                 },
 

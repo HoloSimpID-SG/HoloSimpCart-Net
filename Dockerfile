@@ -1,4 +1,5 @@
 # Use a smaller runtime image as the base
+# FROM --platform=linux/arm64 mcr.microsoft.com/dotnet/runtime:8.0 AS final
 FROM mcr.microsoft.com/dotnet/runtime:8.0 AS final
 
 # Set the working directory inside the container

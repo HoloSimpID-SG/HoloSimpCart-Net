@@ -8,36 +8,39 @@ namespace HoloSimpID
 {
     public partial class Cart
     {
-        public async Task<string> GetDetails(AppDbContext? db = null) { return await GetDetails(uDex, db); }
+        public async Task<string> GetDetails(AppDbContext? db = null) { return await GetDetails(this, db); }
 
-        public static async Task<string> GetDetails(int uDex, AppDbContext? db = null)
+        public async Task<IReadOnlyList<CartItems>> TryGetCartItems(AppDbContext? db = null) => await TryGetCartItems(this, db);
+        public static async Task<IReadOnlyList<CartItems>> TryGetCartItems(Cart cart, AppDbContext? db = null)
+        {
+            bool localContext = db == null;
+            db ??= new AppDbContext();
+                
+            IReadOnlyList<CartItems> result = await db.CartItems
+                .Where(x => x.cartDex == cart.uDex)
+                .Include(c => c.Cart)
+                .Include(c => c.Simp)
+                .ToListAsync();
+            
+            if (localContext) await db.DisposeAsync();
+            return result;
+        }
+        public static async Task<string> GetDetails(Cart cart, AppDbContext? db = null)
         {
             bool localContext = db == null;
             db ??= new AppDbContext();
 
-            Cart? cart = await TryGet(uDex, db: db);
-
-            if (cart == null)
-            {
-                return string.Empty;
-            }
-
             Simp? owner = await Simp.TryGet(cart.Owner.uDex, db: db);
 
             StringBuilder strResult = new();
-            strResult.AppendLine($"# {cart.CartName} (id: {uDex})");
+            strResult.AppendLine($"# {cart.CartName} (id: {cart.uDex})");
             strResult.AppendLine($"Owned by: {owner!.simpName}");
             strResult.Append("Status: ");
             strResult.AppendLine($"{cart.Status}");
             strResult.AppendLine($"Opened at: {cart.DateOpen.ToLocalTime()}");
             strResult.AppendLine("Item List:");
 
-            IEnumerable<CartItems> cartItems = await db.CartItems
-                .Where(x => x.cartDex == uDex)
-                .Include(c => c.Cart)
-                .Include(c => c.Simp)
-                .ToListAsync();
-            if (!cartItems.IsNullOrEmpty())
+            IEnumerable<CartItems> cartItems = await TryGetCartItems(cart, db);
             {
                 foreach (CartItems simpCart in cartItems)
                 {
@@ -136,17 +139,17 @@ namespace HoloSimpID
             return result;
         }
 
-        public async Task CloseCart(AppDbContext? db = null) { await CloseCart(uDex, db); }
+        public async Task CloseCart(AppDbContext? db = null) { await CloseCart(this, db); }
 
-        public static async Task CloseCart(int uDex, AppDbContext? db = null)
+        public static async Task CloseCart(Cart cart, AppDbContext? db = null)
         {
             bool localContext = db == null;
             db ??= new AppDbContext();
 
             await db.Carts
-                .Where(cart => cart.uDex == uDex)
+                .Where(c => c.uDex == cart.uDex)
                 .ExecuteUpdateAsync(setter => setter
-                    .SetProperty(cart => cart.DateClose, DateTime.UtcNow)
+                    .SetProperty(c => c.DateClose, DateTime.UtcNow)
                 );
 
             if (localContext)
@@ -177,26 +180,50 @@ namespace HoloSimpID
 
             if (cartItems == null)
             {
-                cartItems = new CartItems
+                if (quantity > 0)
                 {
-                    cartDex = cart.uDex,
-                    simpDex = simp.uDex,
-                    Items = [item],
-                    Quantities = [quantity]
-                };
-                await db.CartItems.AddAsync(cartItems);
+                    cartItems = new CartItems
+                    {
+                        cartDex = cart.uDex,
+                        simpDex = simp.uDex,
+                        Items = [item],
+                        Quantities = [quantity]
+                    };
+                    await db.CartItems.AddAsync(cartItems);
+                }
+                else
+                {
+                    if (localContext) await db.DisposeAsync();
+                    return false;
+                }
             }
             else
             {
                 int index = cartItems.Items.FindIndex(i => i.Name == item.Name);
                 if (index >= 0)
                 {
-                    cartItems.Quantities[index] += quantity;
+                    if (quantity <= 0)
+                    {
+                        cartItems.Items.RemoveAt(index);
+                        cartItems.Quantities.RemoveAt(index);
+                    }
+                    else
+                    {
+                        cartItems.Quantities[index] = quantity;
+                    }
                 }
                 else
                 {
-                    cartItems.Items.Add(item);
-                    cartItems.Quantities.Add(quantity);
+                    if (quantity <= 0)
+                    {
+                        cartItems.Items.Add(item);
+                        cartItems.Quantities.Add(quantity);   
+                    }
+                    else
+                    {
+                        if (localContext) await db.DisposeAsync();
+                        return false;
+                    }
                 }
                 db.CartItems.Update(cartItems);
             }

@@ -31,7 +31,9 @@ namespace HoloSimpID
             //-+-+-+-+-+-+-+-+
             try
             {
+                Console.WriteLine("Checking DB EF Migration");
                 await AppDbContext.EnsureMigrated();
+                Console.WriteLine("DB EF Migration Complete");
             }
             catch (Exception ex)
             {
@@ -176,6 +178,7 @@ namespace HoloSimpID
             // Finished Loading
             // ..Ready to respond
             //-+-+-+-+-+-+-+-+-+
+            Console.WriteLine("App Finished Loading.");
             await threadTesting.SendMessageAsync("Hina caffeinated, ready to serve.");
         }
 
@@ -190,6 +193,7 @@ namespace HoloSimpID
                 StringBuilder strErr = new();
                 strErr.AppendLine("Error when performing command:");
                 strErr.AppendLine($"{e.ToStringDemystified()}");
+                Console.WriteLine(strErr.ToString());
             }
         }
 

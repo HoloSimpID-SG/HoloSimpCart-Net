@@ -41,6 +41,7 @@ services:
   #    SQL_CONNECTION: ${SQL_CONNECTION}
   
   discord-bot:
+    # platform: linux/arm64
     build:
       context: .
       dockerfile: Dockerfile
