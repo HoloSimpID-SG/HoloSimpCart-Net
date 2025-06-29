@@ -43,32 +43,6 @@ namespace HoloSimpID
                 .HasColumnType("timestamptz");
         }
 
-        public override int SaveChanges()
-        {
-            DateConvert();
-            return base.SaveChanges();
-        }
-
-        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new())
-        {
-            DateConvert();
-            return base.SaveChangesAsync(cancellationToken);
-        }
-
-        private void DateConvert()
-        {
-            foreach (EntityEntry entry in ChangeTracker.Entries())
-            {
-                foreach (PropertyEntry prop in entry.Properties)
-                {
-                    if (prop.CurrentValue is DateTime dt && dt.Kind == DateTimeKind.Local)
-                    {
-                        prop.CurrentValue = dt.ToUniversalTime();
-                    }
-                }
-            }
-        }
-
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             //if (optionsBuilder.IsConfigured) return;
