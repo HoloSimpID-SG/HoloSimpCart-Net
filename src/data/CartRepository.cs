@@ -41,7 +41,7 @@ namespace HoloSimpID
             {
                 foreach (CartItems simpCart in cartItems)
                 {
-                    Simp? simp = await Simp.TryGet(simpCart.simpDex);
+                    Simp? simp = await Simp.TryGet(simpCart.simpDex, db: db);
                     if (simp == null)
                     {
                         continue;
