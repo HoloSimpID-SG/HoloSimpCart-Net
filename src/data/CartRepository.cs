@@ -30,10 +30,10 @@ namespace HoloSimpID
             bool localContext = db == null;
             db ??= new AppDbContext();
 
-            Simp? owner = await Simp.TryGet(cart.Owner.uDex, db: db);
+            Simp? owner = await Simp.TryGet(cart.OwnerDex, db: db);
 
             StringBuilder strResult = new();
-            strResult.AppendLine($"# {cart.CartName} (id: {cart.uDex})");
+            strResult.AppendLine($"# {cart}");
             strResult.AppendLine($"Owned by: {owner!.simpName}");
             strResult.Append("Status: ");
             strResult.AppendLine($"{cart.Status}");

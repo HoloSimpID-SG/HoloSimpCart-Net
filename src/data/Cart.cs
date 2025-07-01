@@ -41,6 +41,10 @@ namespace HoloSimpID
         //-+-+-+-+-+-+-+-+
         // Miscellaneous
         //-+-+-+-+-+-+-+-+
+        public override string ToString()
+        {
+            return $"Cart: {CartName} (id: {uDex})";
+        }
         [Column(TypeName = "numeric")] public decimal ShippingCost { get; set; }
         #endregion
         private static readonly TimeSpan DefaultPlan = TimeSpan.FromDays(7);
