@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 
 namespace HoloSimpID
 {
@@ -45,24 +47,52 @@ namespace HoloSimpID
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            //if (optionsBuilder.IsConfigured) return;
-            //
-            var dataSourceBuilder = new NpgsqlDataSourceBuilder(Environment.GetEnvironmentVariable("SQL_CONNECTION"));
+            if (optionsBuilder.IsConfigured) return;
+            
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(
+                Environment.GetEnvironmentVariable("SQL_CONNECTION"));
             dataSourceBuilder.EnableDynamicJson();
+            NpgsqlDataSource dataSource = dataSourceBuilder.Build();
 
             optionsBuilder
-                .UseNpgsql(dataSourceBuilder.Build())
+                .UseNpgsql(dataSource)
                 .LogTo(Console.WriteLine, LogLevel.Trace);
         }
 
         public static async Task EnsureMigrated()
         {
-            await using var context = new AppDbContext();
-            if ((await context.Database.GetPendingMigrationsAsync()).Any())
-            {
-                await context.Database.MigrateAsync();
-            }
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(
+                Environment.GetEnvironmentVariable("SQL_CONNECTION"));
+            dataSourceBuilder.EnableDynamicJson();
+            NpgsqlDataSource dataSource = dataSourceBuilder.Build();
+
+            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+            optionsBuilder.UseNpgsql(dataSource);
+
+            var db = new AppDbContext(optionsBuilder.Options);
+            await db.Database.MigrateAsync();
+            await db.DisposeAsync();
         }
+
+        public AppDbContext() { }
+        public AppDbContext(DbContextOptions options) : base(options) { }
         #endregion
+    }
+    public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
+    {
+        public AppDbContext CreateDbContext(string[] args)
+        {
+            var connectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION")
+                                   ?? "Host=localhost;Database=test;Username=test;Password=test";
+
+            var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
+            dataSourceBuilder.EnableDynamicJson();
+            var dataSource = dataSourceBuilder.Build();
+
+            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+            optionsBuilder.UseNpgsql(dataSource);
+
+            return new AppDbContext(optionsBuilder.Options);
+        }
     }
 }

@@ -33,5 +33,8 @@
     <ItemGroup>
         <ProjectReference Include="..\MMOR.Utils\MMOR.Utils.csproj"/>
     </ItemGroup>
-
+    
+    <ItemGroup>
+        <EmbeddedResource Include="Migrations\*.cs" />
+    </ItemGroup>
 </Project>
