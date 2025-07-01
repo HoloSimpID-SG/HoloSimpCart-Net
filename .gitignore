@@ -137,6 +137,6 @@ _NCrunch*
 .idea/
 .editorconfig
 
-Migrations/
+#Migrations/
 efbundle
 .env*
