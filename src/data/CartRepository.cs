@@ -214,7 +214,7 @@ namespace HoloSimpID
                 }
                 else
                 {
-                    if (quantity <= 0)
+                    if (quantity >= 0)
                     {
                         cartItems.Items.Add(item);
                         cartItems.Quantities.Add(quantity);   
