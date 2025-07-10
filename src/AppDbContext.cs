@@ -71,6 +71,11 @@ namespace HoloSimpID
 
             var db = new AppDbContext(optionsBuilder.Options);
             await db.Database.MigrateAsync();
+            // Warm-Up
+            _ = await db.Carts.FirstOrDefaultAsync();
+            _ = await db.Simps.FirstOrDefaultAsync();
+            _ = await db.CartItems.FirstOrDefaultAsync();
+            // Finishing
             await db.DisposeAsync();
         }
 

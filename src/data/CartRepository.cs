@@ -157,6 +157,23 @@ namespace HoloSimpID
                 await db.DisposeAsync();
             }
         }
+        public async Task SetCartDelivered(AppDbContext? db = null) => await SetCartDelivered(this, db);
+        public static async Task SetCartDelivered(Cart cart, AppDbContext? db = null)
+        {
+            bool localContext = db == null;
+            db ??= new AppDbContext();
+
+            await db.Carts
+                .Where(c => c.uDex == cart.uDex)
+                .ExecuteUpdateAsync(setter => setter
+                    .SetProperty(c => c.DateDelivered, DateTime.UtcNow)
+                );
+
+            if (localContext)
+            {
+                await db.DisposeAsync();
+            }
+        }
 
         public async Task<bool> UpsertItem(Simp simp, Item item, int quantity = 1, AppDbContext? db = null)
         {

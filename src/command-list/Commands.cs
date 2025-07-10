@@ -45,6 +45,14 @@ namespace HoloSimpID
                 .WithName("close-cart-by-id")
                 .WithDescription("Where's my Hina, Gio")
                 .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", true),
+            new SlashCommandBuilder()
+                .WithName("set-cart-delivered-cart-by-name")
+                .WithDescription("Where's my Hina, Gio")
+                .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true),
+            new SlashCommandBuilder()
+                .WithName("set-cart-delivered-cart-by-id")
+                .WithDescription("Where's my Hina, Gio")
+                .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", true),
 
             //-+-+-+-+-+-+-+-+
             // List All Carts
@@ -73,7 +81,7 @@ namespace HoloSimpID
             // Add Item to Cart Commands
             //-+-+-+-+-+-+-+-+
             new SlashCommandBuilder()
-                .WithName("add-item-by-id")
+                .WithName("upsert-item-by-id")
                 .WithDescription("Where's my Hina, Gio")
                 .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", true)
                 .AddOption("item-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true)
@@ -81,7 +89,7 @@ namespace HoloSimpID
                 .AddOption("item-price", ApplicationCommandOptionType.Number, "Where's my Hina, Gio", false)
                 .AddOption("quantity", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", false),
             new SlashCommandBuilder()
-                .WithName("add-item-by-name")
+                .WithName("upsert-item-by-name")
                 .WithDescription("Where's my Hina, Gio")
                 .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true)
                 .AddOption("item-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true)

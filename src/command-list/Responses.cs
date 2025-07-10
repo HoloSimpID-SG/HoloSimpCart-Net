@@ -34,11 +34,7 @@ namespace HoloSimpID
                         string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
 
                         // Then, you write the logic here
-                        Simp? owner = await Simp.TryGet(userName);
-                        if (owner == null)
-                        {
-                            owner = await Simp.RegisterSimp(userName);
-                        }
+                        Simp owner = await Simp.TryGet(command.User) ?? await Simp.RegisterSimp(command.User);
 
                         var cart = await Cart.OpenCart(owner, cartName);
 
@@ -105,12 +101,17 @@ namespace HoloSimpID
                         string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
 
                         Cart? cart = await Cart.TryGet(cartName);
+                        Simp? simp = await Simp.TryGet(userName);
 
                         if (cart == null)
                         {
                             await command.RespondAsync($"No Cart with name: {cartName} was found.");
                             return;
                         }
+
+                        if (simp == null || simp.uDex != cart.OwnerDex)
+                            await command.RespondAsync(
+                                "You are not allowed to perform this action as you are not the owner of this cart.");
 
                         await cart.CloseCart();
 
@@ -127,13 +128,75 @@ namespace HoloSimpID
                         int cartId = parameters.GetCastedValueOrDefault("cart-id", -1);
 
                         Cart? cart = await Cart.TryGet(cartId);
+                        Simp? simp = await Simp.TryGet(userName);
+
                         if (cart == null)
                         {
                             await command.RespondAsync($"No Cart with id: {cartId} was found.");
                             return;
                         }
 
+                        if (simp == null || simp.uDex != cart.OwnerDex)
+                            await command.RespondAsync(
+                                "You are not allowed to perform this action as you are not the owner of this cart.");
+
                         await cart.CloseCart();
+
+
+                        await command.RespondAsync($"{userName} has closed: \n {cart}");
+                    }
+                },
+                {
+                    "set-cart-delivered-by-name",
+                    async command =>
+                    {
+                        Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
+
+                        string userName = command.User.Username;
+                        string cartName = parameters.GetCastedValueOrDefault("cart-name", string.Empty);
+
+                        Cart? cart = await Cart.TryGet(cartName);
+                        Simp? simp = await Simp.TryGet(userName);
+
+                        if (cart == null)
+                        {
+                            await command.RespondAsync($"No Cart with name: {cartName} was found.");
+                            return;
+                        }
+
+                        if (simp == null || simp.uDex != cart.OwnerDex)
+                            await command.RespondAsync(
+                                "You are not allowed to perform this action as you are not the owner of this cart.");
+
+                        await cart.SetCartDelivered();
+
+                        await command.RespondAsync($"{userName} has closed: \n {cart}");
+                    }
+                },
+                {
+                    "set-cart-delivered-cart-by-id",
+                    async command =>
+                    {
+                        Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
+
+                        string userName = command.User.Username;
+                        int cartId = parameters.GetCastedValueOrDefault("cart-id", -1);
+
+                        Cart? cart = await Cart.TryGet(cartId);
+                        Simp? simp = await Simp.TryGet(userName);
+
+                        if (cart == null)
+                        {
+                            await command.RespondAsync($"No Cart with id: {cartId} was found.");
+                            return;
+                        }
+
+                        if (simp == null || simp.uDex != cart.OwnerDex)
+                            await command.RespondAsync(
+                                "You are not allowed to perform this action as you are not the owner of this cart.");
+
+                        await cart.SetCartDelivered();
+
 
                         await command.RespondAsync($"{userName} has closed: \n {cart}");
                     }
@@ -143,7 +206,7 @@ namespace HoloSimpID
                 // Add Item to Cart Commands
                 //-+-+-+-+-+-+-+-+
                 {
-                    "add-item-by-id",
+                    "upsert-item-by-id",
                     async command =>
                     {
                         Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
@@ -174,7 +237,7 @@ namespace HoloSimpID
                     }
                 },
                 {
-                    "add-item-by-name",
+                    "upsert-item-by-name",
                     async command =>
                     {
                         Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
@@ -220,15 +283,7 @@ namespace HoloSimpID
                             parameters.GetCastedValueOrDefault("only-open-carts", x => Convert.ToBoolean(x));
 
                         StringBuilder strResult = new();
-                        List<Cart> cartList = new();
-                        if (onlyOpen)
-                        {
-                            cartList = await Cart.GetAllCarts(cart => cart.Status == Cart.CartStatus.Open);
-                        }
-                        else
-                        {
-                            cartList = await Cart.GetAllCarts();
-                        }
+                        List<Cart> cartList = await Cart.GetAllCarts();
 
                         if (cartList.IsNullOrEmpty())
                         {
@@ -238,6 +293,7 @@ namespace HoloSimpID
 
                         foreach (Cart cart in cartList)
                         {
+                            if (onlyOpen && cart.Status != Cart.CartStatus.Open) continue;
                             strResult.AppendLine(await cart.GetDetails());
                         }
 
@@ -293,8 +349,13 @@ namespace HoloSimpID
                         strResult.AppendLine($"Standard Deviation: {statsByItem.StandardDeviation:C2}");
                         strResult.AppendLine($"Gini Coefficient: {statsByItem.GiniCoefficient:P2}");
                         strResult.AppendLine($"Most Expensive: {statsByItem.Maximum:C2}");
-                        strResult.AppendLine(
-                            $"Box Plot: {statsByItem.LowerFence:C2} <- [ {statsByItem.Q1:C2} | {statsByItem.Median:C2} | {statsByItem.Q3:C2} ] -> {statsByItem.UpperFence:C2}");
+                        strResult.Append("Box Plot: ")
+                            .Append($"{statsByItem.LowerFence:C2}")
+                            .Append(" <- [ ") .Append($"{statsByItem.Q1:C2}")
+                            .Append(" | ") .Append($"{statsByItem.Median:C2}") .Append(" | ")
+                            .Append($"{statsByItem.Q3:C2}") .Append(" ] -> ")
+                            .Append($"{statsByItem.UpperFence:C2}")
+                            .AppendLine();
 
                         strResult.AppendLine("## By Simps:");
                         strResult.AppendLine($"Total Perticipants: {statsBySimp.Count:N0}");
@@ -302,8 +363,13 @@ namespace HoloSimpID
                         strResult.AppendLine($"Standard Deviation: {statsBySimp.StandardDeviation:C2}");
                         strResult.AppendLine($"Gini Coefficient: {statsBySimp.GiniCoefficient:P2}");
                         strResult.AppendLine($"Biggest Spender: {statsBySimp.Maximum:C2}");
-                        strResult.AppendLine(
-                            $"Box Plot: {statsBySimp.LowerFence:C2} <- [ {statsBySimp.Q1:C2} | {statsBySimp.Median:C2} | {statsBySimp.Q3:C2} ] -> {statsBySimp.UpperFence:C2}");
+                        strResult.Append("Box Plot: ")
+                            .Append($"{statsBySimp.LowerFence:C2}")
+                            .Append(" <- [ ") .Append($"{statsBySimp.Q1:C2}")
+                            .Append(" | ") .Append($"{statsBySimp.Median:C2}") .Append(" | ")
+                            .Append($"{statsBySimp.Q3:C2}") .Append(" ] -> ")
+                            .Append($"{statsBySimp.UpperFence:C2}")
+                            .AppendLine();
 
                         await command.RespondAsync($"{strResult}");
                     }
@@ -316,10 +382,7 @@ namespace HoloSimpID
                         Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
 
                         string userName = command.User.Username;
-                        string nickname = parameters
-                            .GetCastedValueOrDefault("nickname",
-                                x => Convert.ToString(x),
-                                string.Empty);
+                        string nickname = parameters.GetCastedValueOrDefault("nickname", userName);
 
                         StringBuilder strResult = new();
                         try
@@ -327,11 +390,12 @@ namespace HoloSimpID
                             Simp? simp = await Simp.TryGet(userName);
                             if (simp != null)
                             {
+                                await Simp.UpdateNickname(simp, nickname);
                                 strResult.AppendLine("You are already registered. Updating your nickname.");
                             }
                             else
                             {
-                                simp = await Simp.RegisterSimp(userName, nickname);
+                                simp = await Simp.RegisterSimp(userName, nickname, command.User.GetAvatarUrl());
                                 strResult.AppendLine($"Successfully registered Simp: {simp.simpName} ({simp.uDex})");
                             }
                         }
