@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Text;
 using Discord.WebSocket;
+using MMOR.Utils.Random;
 using MMOR.Utils.Statistics;
 using MMOR.Utils.Utilities;
 
@@ -426,7 +427,10 @@ namespace HoloSimpID
                             StringBuilder strResult = new();
                             for (var i = 0; i < count; i++)
                             {
-                                strResult.AppendLine("Bau Bau");
+                                if (PCG.global.NextDouble() > 0.3f / 100f)
+                                    strResult.AppendLine("Umapyoi");
+                                else
+                                    strResult.AppendLine("Bau Bau");
                             }
                             await command.RespondAsync(strResult.ToString());
                         }
