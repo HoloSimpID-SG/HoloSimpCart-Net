@@ -63,7 +63,8 @@ namespace HoloSimpID
             return simp;
         }
 
-        public async Task UpdateNickname(string nickname, AppDbContext? db = null) => await UpdateNickname(this, db);
+        public async Task UpdateNickname(string nickname, AppDbContext? db = null) =>
+            await UpdateNickname(this, nickname, db);
         public static async Task UpdateNickname(Simp simp, string nickname, AppDbContext? db = null)
         {
             bool localContext = db == null;
