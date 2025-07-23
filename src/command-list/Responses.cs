@@ -175,7 +175,7 @@ namespace HoloSimpID
                     }
                 },
                 {
-                    "set-cart-delivered-cart-by-id",
+                    "set-cart-delivered-by-id",
                     async command =>
                     {
                         Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
@@ -426,14 +426,20 @@ namespace HoloSimpID
                         {
                             StringBuilder strResult = new();
                             for (var i = 0; i < count; i++)
-                            {
-                                if (PCG.global.NextDouble() > 0.3f / 100f)
-                                    strResult.AppendLine("Umapyoi");
-                                else
-                                    strResult.AppendLine("Bau Bau");
-                            }
+                                strResult.AppendLine(PCG.global.NextDouble() < (3.0 / 100) ? "Umapyoi" : "Bau Bau");
                             await command.RespondAsync(strResult.ToString());
                         }
+                    }
+                },
+                {
+                    "schedule-weekly-uma",
+                    async command =>
+                    {
+                        Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
+                        string userName = command.User.Username;
+
+                        //int count = parameters.GetCastedValueOrDefault("how-many", 3);
+                        await command.RespondAsync(UmaScheduler.CreateSchedule());
                     }
                 }
             }.ToImmutableDictionary();

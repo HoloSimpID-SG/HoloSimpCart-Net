@@ -46,11 +46,11 @@ namespace HoloSimpID
                 .WithDescription("Where's my Hina, Gio")
                 .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", true),
             new SlashCommandBuilder()
-                .WithName("set-cart-delivered-cart-by-name")
+                .WithName("set-cart-delivered-by-name")
                 .WithDescription("Where's my Hina, Gio")
                 .AddOption("cart-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true),
             new SlashCommandBuilder()
-                .WithName("set-cart-delivered-cart-by-id")
+                .WithName("set-cart-delivered-by-id")
                 .WithDescription("Where's my Hina, Gio")
                 .AddOption("cart-id", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", true),
 
@@ -95,7 +95,12 @@ namespace HoloSimpID
                 .AddOption("item-name", ApplicationCommandOptionType.String, "Where's my Hina, Gio", true)
                 .AddOption("item-link", ApplicationCommandOptionType.String, "Where's my Hina, Gio", false)
                 .AddOption("item-price", ApplicationCommandOptionType.Number, "Where's my Hina, Gio", false)
-                .AddOption("quantity", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", false)
+                .AddOption("quantity", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", false),
+
+            new SlashCommandBuilder()
+                .WithName("schedule-weekly-uma")
+                .WithDescription("McQueen Doko")
+                //.AddOption("how-many", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", false)
         };
     }
 }
