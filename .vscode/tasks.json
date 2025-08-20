@@ -1,0 +1,10 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Hina-Cart Docker Compose",
+      "type": "shell",
+      "command": "docker compose up"
+    }
+  ]
+}

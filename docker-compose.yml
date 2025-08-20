@@ -16,40 +16,20 @@ services:
       timeout: 5s
       retries: 5
 
-  db-admin:
-    image: dpage/pgadmin4:latest
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: hinaforyadi@gio.com
-      PGADMIN_DEFAULT_PASSWORD: hinaforyadi
-    ports:
-      - "8080:80"
-    depends_on:
-      database:
-        condition: service_healthy
+  # python-venv:
+  #   build:
+  #     context: ./python-service
+  #     dockerfile: ./python-service/Dockerfile
+  #   container_name: python-service
 
-  #migrate:
-  #  build:
-  #    context: .
-  #    dockerfile: Dockerfile
-  #  depends_on:
-  #    database:
-  #      condition: service_healthy
-  #  entrypoint: [ "./efbundle" ]
-  #  command: [ "--connection", "${SQL_CONNECTION}" ]
-  #  environment:
-  #    SQL_CONNECTION: ${SQL_CONNECTION}
-  
   discord-bot:
     # platform: linux/arm64
     build:
-      context: .
+      context: ./discord-net
       dockerfile: Dockerfile
     depends_on:
       database:
         condition: service_healthy
-      #migrate:
-      #  condition: service_completed_successfully
     environment:
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       GUILD_ID: ${GUILD_ID}
