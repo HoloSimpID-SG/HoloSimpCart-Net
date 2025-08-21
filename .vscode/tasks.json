@@ -2,9 +2,17 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Hina-Cart Docker Compose",
+      "label": "docker compose",
       "type": "shell",
-      "command": "docker compose up"
+      "command": "docker compose up",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
     }
   ]
 }
