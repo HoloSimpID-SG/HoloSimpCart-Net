@@ -16,13 +16,13 @@ services:
       timeout: 5s
       retries: 5
 
-  python-service:
+  python-uvicorn:
     build:
-      context: ./python-service
+      context: ./python-uvicorn
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    container_name: python-service
+    container_name: python-uvicorn
 
   discord-bot:
     # platform: linux/arm64

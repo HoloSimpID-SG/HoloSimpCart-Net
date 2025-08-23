@@ -463,27 +463,15 @@ namespace HoloSimpID
           {
             Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
             string userName = command.User.Username;
-            var request_url = "http://python-service:8000/hello_from_python";
-            try
+
+            var data = new JsonObject
             {
-              var data = new JsonObject
-              {
-                ["name"] = userName,
-                ["number"] = PCG.global.NextInt(0, 150),
-              };
-              var response = await CartBot.HttpClient.PostAsync(
-                request_url,
-                JsonContent.Create(data)
-              );
-              response.EnsureSuccessStatusCode();
-              string result = await response.Content.ReadAsStringAsync();
-              await command.RespondAsync(result);
-            }
-            catch (Exception ex)
-            {
-              Console.WriteLine(ex.ToStringDemystified());
-              await command.RespondAsync(ex.Message);
-            }
+              ["name"] = userName,
+              ["number"] = PCG.global.NextInt(0, 150),
+            };
+            var (success, value) = await Python.Invoke("hello_from_python", data);
+
+            await command.RespondAsync(value);
           }
         },
       }.ToImmutableDictionary();
