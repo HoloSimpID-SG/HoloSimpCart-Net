@@ -1,0 +1,4 @@
+[submodule "discord-net/MMOR.NET"]
+	path = discord-net/MMOR.NET
+	url = https://github.com/mcahyadit/MMOR.NET.git
+	branch = v2.0.0.1-stable
