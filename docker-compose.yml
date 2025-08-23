@@ -11,16 +11,18 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U hina_cart" ]
+      test: ["CMD-SHELL", "pg_isready -U hina_cart"]
       interval: 5s
       timeout: 5s
       retries: 5
 
-  # python-venv:
-  #   build:
-  #     context: ./python-service
-  #     dockerfile: ./python-service/Dockerfile
-  #   container_name: python-service
+  python-service:
+    build:
+      context: ./python-service
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    container_name: python-service
 
   discord-bot:
     # platform: linux/arm64

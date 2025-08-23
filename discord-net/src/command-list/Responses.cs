@@ -1,10 +1,13 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json.Nodes;
 using Discord.WebSocket;
 using MMOR.NET.Random;
 using MMOR.NET.Statistics;
 using MMOR.NET.Utilities;
+using Newtonsoft.Json.Linq;
 
 namespace HoloSimpID
 {
@@ -452,6 +455,35 @@ namespace HoloSimpID
 
             //int count = parameters.GetCastedValueOrDefault("how-many", 3);
             await command.RespondAsync(UmaScheduler.CreateSchedule());
+          }
+        },
+        {
+          "python-test",
+          async command =>
+          {
+            Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
+            string userName = command.User.Username;
+            var request_url = "http://python-service:8000/hello_from_python";
+            try
+            {
+              var data = new JsonObject
+              {
+                ["name"] = userName,
+                ["number"] = PCG.global.NextInt(0, 150),
+              };
+              var response = await CartBot.HttpClient.PostAsync(
+                request_url,
+                JsonContent.Create(data)
+              );
+              response.EnsureSuccessStatusCode();
+              string result = await response.Content.ReadAsStringAsync();
+              await command.RespondAsync(result);
+            }
+            catch (Exception ex)
+            {
+              Console.WriteLine(ex.ToStringDemystified());
+              await command.RespondAsync(ex.Message);
+            }
           }
         },
       }.ToImmutableDictionary();
