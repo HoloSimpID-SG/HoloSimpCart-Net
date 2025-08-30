@@ -2,9 +2,9 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "docker compose",
+      "label": "Docker",
       "type": "shell",
-      "command": "docker compose up",
+      "command": "docker compose up --build",
       "group": {
         "kind": "build",
         "isDefault": true
@@ -15,40 +15,17 @@
       }
     },
     {
-      "label": "build",
-      "command": "dotnet",
-      "type": "process",
-      "args": [
-        "build",
-        "${workspaceFolder}/discord-net/RuTakingTooLong.csproj",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary;ForceNoAlign"
-      ],
-      "problemMatcher": "$msCompile"
+      "label": "Podman",
+      "type": "shell",
+      "command": "podman compose up --build",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      }
     },
-    {
-      "label": "publish",
-      "command": "dotnet",
-      "type": "process",
-      "args": [
-        "publish",
-        "${workspaceFolder}/discord-net/RuTakingTooLong.csproj",
-        "/property:GenerateFullPaths=true",
-        "/consoleloggerparameters:NoSummary;ForceNoAlign"
-      ],
-      "problemMatcher": "$msCompile"
-    },
-    {
-      "label": "watch",
-      "command": "dotnet",
-      "type": "process",
-      "args": [
-        "watch",
-        "run",
-        "--project",
-        "${workspaceFolder}/discord-net/RuTakingTooLong.csproj"
-      ],
-      "problemMatcher": "$msCompile"
-    }
   ]
 }
