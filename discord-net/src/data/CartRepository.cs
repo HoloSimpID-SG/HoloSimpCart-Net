@@ -1,4 +1,4 @@
-﻿using System.Linq.Expressions;
+using System.Linq.Expressions;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using MMOR.NET.Consts;
@@ -67,7 +67,7 @@ namespace HoloSimpID
               .Append("  - ")
               .Append(simpCart.Items[i])
               .Append(" (")
-              .Append(simpCart.Items[i].PriceSGD.toCurrency())
+              .Append(simpCart.Items[i].PriceSGD.ToCurrency())
               .Append(")")
               .Append(Consts.multiplierSign)
               .Append(simpCart.Quantities[i])
