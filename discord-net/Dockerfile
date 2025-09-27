@@ -10,6 +10,6 @@ WORKDIR /discord-bot
 COPY --from=build /discord-bot/build .
 
 ENV LANG=en_US.UTF-8 \
-  LC_ALL=en_US.UTF-8 \
+  LC_ALL=en_US.UTF-8
 
 ENTRYPOINT ["dotnet", "RuTakingTooLong.dll"]
