@@ -5,6 +5,7 @@
     "ms-azuretools.vscode-containers",
     "mtxr.sqltools",
     "mtxr.sqltools-driver-pg",
-    "ibm.output-colorizer"
+    "ibm.output-colorizer",
+    "charliermarsh.ruff"
   ]
 }

@@ -1,8 +1,9 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json.Nodes;
+using Discord;
 using Discord.WebSocket;
 using MMOR.NET.Random;
 using MMOR.NET.Statistics;
@@ -472,6 +473,23 @@ namespace HoloSimpID
             var (success, value) = await Python.Invoke("hello_from_python", data);
 
             await command.RespondAsync(value);
+          }
+        },
+        {
+          "manim-text",
+          async command =>
+          {
+            Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
+            string userName = command.User.Username;
+
+            var data = new JsonObject
+            {
+              ["text"] = parameters["text"].ToString(),
+            };
+            var (success, value) = await Python.Invoke("manim_text", data);
+            var video = new FileAttachment(value);
+
+            await command.RespondWithFilesAsync([video]);
           }
         },
       }.ToImmutableDictionary();

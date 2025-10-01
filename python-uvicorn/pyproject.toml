@@ -1,0 +1,7 @@
+[project]
+name = "python-uvicorn"
+version = "2.3.1.0"
+dependencies = ["fastapi", "uvicorn", "pydantic", "manim"]
+
+[tool.ruff.format]
+indent-style = "space"

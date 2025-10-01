@@ -1,15 +1,15 @@
-﻿using Discord;
+using Discord;
 
 namespace HoloSimpID
 {
-  /// <summary>
-  ///     <br /> - <strong>COMMANDS WA KOKO DESUWA</strong>
-  ///     <br /> - Even Gio's Biology Brain should be able to understand this.
-  /// </summary>
-  public static partial class CommandConsts
-  {
-    public static readonly SlashCommandBuilder[] commands =
+    /// <summary>
+    ///     <br /> - <strong>COMMANDS WA KOKO DESUWA</strong>
+    ///     <br /> - Even Gio's Biology Brain should be able to understand this.
+    /// </summary>
+    public static partial class CommandConsts
     {
+        public static readonly SlashCommandBuilder[] commands =
+        {
       // Each new command, write this line:
       new SlashCommandBuilder()
         // This is the name, which will be used to call the command
@@ -98,6 +98,10 @@ namespace HoloSimpID
       new SlashCommandBuilder()
         .WithName("python-test")
         .WithDescription("For Keti and Mute"),
+      new SlashCommandBuilder()
+        .WithName("manim-text")
+        .WithDescription("For Keti and Mute")
+        .AddOption("text", ApplicationCommandOptionType.String, "Where's my Hina, Gio", false),
     };
-  }
+    }
 }

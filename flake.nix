@@ -2,6 +2,7 @@
   description = "Development Shell with Nix if you don't know what to install";
 
   inputs = {
+    self.submodules = true;
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
   };

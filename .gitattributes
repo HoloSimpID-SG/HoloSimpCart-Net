@@ -1,1 +1,9 @@
 * text=auto eol=lf
+
+# C#
+*.cs          text diff=csharp
+*.sln         text eol=crlf
+*.csproj      text eol=crlf
+
+# Python
+*.py          text diff=python
