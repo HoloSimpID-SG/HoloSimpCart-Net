@@ -39,10 +39,9 @@ services:
       GUILD_ID: ${GUILD_ID}
       THREAD_ID: ${THREAD_ID}
       SQL_CONNECTION: ${SQL_CONNECTION}
-    volume:
+    volumes:
       - shared:/shared
 
 volumes:
   shared:
-    driver: local
   db_data:

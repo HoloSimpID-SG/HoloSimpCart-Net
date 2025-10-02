@@ -24,11 +24,7 @@ def _manim_text(input_text: str) -> str:
     scene = TextScene(input_text)
     scene.render()
 
-    path_orig: str = scene.renderer.file_writer.movie_file_path
-    path_dest: str = os.path.join("/shared", "manim_output.mp4")
-    shutil.move(path_orig, path_dest)
-
-    return path_dest
+    return str(scene.renderer.file_writer.movie_file_path)
 
 
 router = APIRouter()

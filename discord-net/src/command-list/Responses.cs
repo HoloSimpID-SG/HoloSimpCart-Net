@@ -490,6 +490,7 @@ namespace HoloSimpID
             var video = new FileAttachment(value);
 
             await command.RespondWithFilesAsync([video]);
+            File.Delete(value);
           }
         },
       }.ToImmutableDictionary();
