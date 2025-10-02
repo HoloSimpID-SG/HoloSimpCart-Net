@@ -28,17 +28,26 @@ All Python code are in `./python-uvicorn`, someone more familiar with python are
 ## To call Python from C#:
 Python Side:
 ```py
-from fastapi import FastAPI
+# custom.py <-- use the name
+from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
+
+router = APIRouter()
 
 class Input(BaseModel):
   a_prop: # type
   other_prop: # type
 
 # generalize both return-type as string
-@app.post("/NAME", response_class=PlainTextResponse)
+@router.post("/NAME", response_class=PlainTextResponse)
 def some_python_func(Input: input)
+
+# main.py
+# add these
+from app.<path>.custom.py import router as <name>_router
+# below app
+app.include_router(<name>_router)
 ```
 C# Side:
 ```cs

@@ -1,5 +1,4 @@
 import os
-import shutil
 from fastapi import APIRouter
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
