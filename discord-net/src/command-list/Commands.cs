@@ -102,9 +102,6 @@ namespace HoloSimpID
         .WithName("manim-text")
         .WithDescription("For Keti and Mute")
         .AddOption("text", ApplicationCommandOptionType.String, "Where's my Hina, Gio", false),
-      new SlashCommandBuilder()
-        .WithName("vcs-test")
-        .WithDescription("Debugging VCS"),
     };
     }
 }

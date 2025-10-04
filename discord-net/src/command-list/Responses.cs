@@ -493,13 +493,6 @@ namespace HoloSimpID
             File.Delete(value);
           }
         },
-        {
-          "vcs-test",
-          async command =>
-          {
-            await command.RespondAsync("Test");
-          }
-        },
       }.ToImmutableDictionary();
   }
 }
