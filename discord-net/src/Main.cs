@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Text;
 using Discord;
 using Discord.Commands;
@@ -117,80 +117,10 @@ namespace HoloSimpID
       // Starts Loading
       //-+-+-+-+-+-+-+-+-+
       await threadTesting.SendMessageAsync(
-        "Hina, Waking Up.\nPlease wait while I drink my coffee."
-      );
-
-      //-+-+-+-+-+-+-+-+
-      // Commands Validation
-      // ..so that you buffons don't forget :ayamewheeze:
-      // Checks if each command have a response and vice-versa
-      //-+-+-+-+-+-+-+-+
-      #region Commands Validation
-      var isValid = true;
-      Console.WriteLine();
-      Console.WriteLine("Running Command Validation.");
-      List<string> commandName = new();
-      foreach (SlashCommandBuilder command in CommandConsts.commands)
-      {
-        commandName.Add(command.Name);
-        if (CommandConsts.responses.ContainsKey(command.Name))
-        {
-          continue;
-        }
-        isValid = false;
-        Console.WriteLine($"Command: {command.Name}, does not have a response.");
-      }
-      foreach (
-        KeyValuePair<string, Func<SocketSlashCommand, Task>> respond in CommandConsts.responses
-      )
-      {
-        if (commandName.Contains(respond.Key))
-        {
-          continue;
-        }
-        isValid = false;
-        Console.WriteLine($"Response: {respond.Key}, does not have a command.");
-      }
-      if (!isValid)
-      {
-        throw new Exception("Commands and Responses are not in sync Haiyahhh.");
-      }
-      #endregion
-      //-+-+-+-+-+-+-+-+
-      // Clear Commands
-      // ..if not, it will retain already deleted commands
-      // ..or fail to update with new logic
-      //-+-+-+-+-+-+-+-+
-      Console.WriteLine("Clearing Previous Commands");
-      await client.Rest.DeleteAllGlobalCommandsAsync();
-      await guild.DeleteApplicationCommandsAsync();
-
-      //-+-+-+-+-+-+-+-+
-      foreach (SlashCommandBuilder command in CommandConsts.commands)
-      {
-        try
-        {
-          Console.WriteLine($"Registering {command.Name}");
-          await guild.CreateApplicationCommandAsync(command.Build());
-          Console.WriteLine($"Finished Registering {command.Name}");
-        }
-        catch (HttpException exception)
-        {
-          string json = JsonConvert.SerializeObject(
-            exception.ToStringDemystified(),
-            Formatting.Indented
+          "Hina, Waking Up.\nPlease wait while I drink my coffee."
           );
 
-          Console.WriteLine("Something Broke, idk... this is the first time I am making a bot");
-          Console.WriteLine(json);
-        }
-        catch (Exception e)
-        {
-          Console.WriteLine(
-            $"Something Broke, idk... this is the first time I am making a bot. Here's the message:\n{e.ToStringDemystified()}\nGo Figure or Go Vibe."
-          );
-        }
-      }
+      await CommandRegisration.Start(guild);
 
       //-+-+-+-+-+-+-+-+-+
       // Finished Loading

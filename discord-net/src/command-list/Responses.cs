@@ -114,8 +114,8 @@ namespace HoloSimpID
 
             if (simp == null || simp.uDex != cart.OwnerDex)
               await command.RespondAsync(
-                "You are not allowed to perform this action as you are not the owner of this cart."
-              );
+                  "You are not allowed to perform this action as you are not the owner of this cart."
+                  );
 
             await cart.CloseCart();
 
@@ -142,8 +142,8 @@ namespace HoloSimpID
 
             if (simp == null || simp.uDex != cart.OwnerDex)
               await command.RespondAsync(
-                "You are not allowed to perform this action as you are not the owner of this cart."
-              );
+                  "You are not allowed to perform this action as you are not the owner of this cart."
+                  );
 
             await cart.CloseCart();
 
@@ -170,8 +170,8 @@ namespace HoloSimpID
 
             if (simp == null || simp.uDex != cart.OwnerDex)
               await command.RespondAsync(
-                "You are not allowed to perform this action as you are not the owner of this cart."
-              );
+                  "You are not allowed to perform this action as you are not the owner of this cart."
+                  );
 
             await cart.SetCartDelivered();
 
@@ -198,8 +198,8 @@ namespace HoloSimpID
 
             if (simp == null || simp.uDex != cart.OwnerDex)
               await command.RespondAsync(
-                "You are not allowed to perform this action as you are not the owner of this cart."
-              );
+                  "You are not allowed to perform this action as you are not the owner of this cart."
+                  );
 
             await cart.SetCartDelivered();
 
@@ -283,9 +283,9 @@ namespace HoloSimpID
 
             string userName = command.User.Username;
             bool onlyOpen = parameters.GetCastedValueOrDefault(
-              "only-open-carts",
-              x => Convert.ToBoolean(x)
-            );
+                "only-open-carts",
+                x => Convert.ToBoolean(x)
+                );
 
             StringBuilder strResult = new();
             List<Cart> cartList = await Cart.GetAllCarts();
@@ -412,8 +412,8 @@ namespace HoloSimpID
               {
                 simp = await Simp.RegisterSimp(userName, nickname, command.User.GetAvatarUrl());
                 strResult.AppendLine(
-                  $"Successfully registered Simp: {simp.simpName} ({simp.uDex})"
-                );
+                    $"Successfully registered Simp: {simp.simpName} ({simp.uDex})"
+                    );
               }
             }
             catch (Exception e)
@@ -459,7 +459,7 @@ namespace HoloSimpID
           }
         },
         {
-          "python-test",
+          "python-hello",
           async command =>
           {
             Dictionary<string, object> parameters = MoLibrary.ReadCommandParameter(command);
@@ -491,6 +491,13 @@ namespace HoloSimpID
 
             await command.RespondWithFilesAsync([video]);
             File.Delete(value);
+          }
+        },
+        {
+          "vcs-test",
+          async command =>
+          {
+            await command.RespondAsync("Test");
           }
         },
       }.ToImmutableDictionary();

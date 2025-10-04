@@ -1,21 +1,31 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Logging;
 using Npgsql;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
+using System.Diagnostics;
 
 namespace HoloSimpID
 {
     public class AppDbContext : DbContext
     {
         #region Mappings
+        public DbSet<CommandVCS> CommandVCS { get; set; } = null!;
+
         public DbSet<Simp> Simps { get; set; } = null!;
         public DbSet<Cart> Carts { get; set; } = null!;
         public DbSet<CartItems> CartItems { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<CommandVCS>(entity =>
+            {
+                entity.HasKey(e => e.command_name);
+                entity.Property(e => e.version_hash).IsRequired();
+                entity.Property(e => e.last_update).HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
             modelBuilder.Entity<CartItems>()
                 .HasKey(ci => new { ci.cartDex, ci.simpDex });
 
@@ -48,7 +58,7 @@ namespace HoloSimpID
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (optionsBuilder.IsConfigured) return;
-            
+
             var dataSourceBuilder = new NpgsqlDataSourceBuilder(
                 Environment.GetEnvironmentVariable("SQL_CONNECTION"));
             dataSourceBuilder.EnableDynamicJson();
@@ -70,13 +80,26 @@ namespace HoloSimpID
             optionsBuilder.UseNpgsql(dataSource);
 
             var db = new AppDbContext(optionsBuilder.Options);
-            await db.Database.MigrateAsync();
-            // Warm-Up
-            _ = await db.Carts.FirstOrDefaultAsync();
-            _ = await db.Simps.FirstOrDefaultAsync();
-            _ = await db.CartItems.FirstOrDefaultAsync();
-            // Finishing
-            await db.DisposeAsync();
+            try
+            {
+                await db.Database.MigrateAsync();
+                // Warm-Up
+                _ = await db.CommandVCS.FirstOrDefaultAsync();
+
+                _ = await db.Carts.FirstOrDefaultAsync();
+                _ = await db.Simps.FirstOrDefaultAsync();
+                _ = await db.CartItems.FirstOrDefaultAsync();
+                // Finishing
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Error during Migration:");
+                Console.WriteLine(ex.ToStringDemystified());
+            }
+            finally
+            {
+                await db.DisposeAsync();
+            }
         }
 
         public AppDbContext() { }

@@ -96,12 +96,15 @@ namespace HoloSimpID
       new SlashCommandBuilder().WithName("schedule-weekly-uma").WithDescription("McQueen Doko"),
       //.AddOption("how-many", ApplicationCommandOptionType.Integer, "Where's my Hina, Gio", false)
       new SlashCommandBuilder()
-        .WithName("python-test")
+        .WithName("python-hello")
         .WithDescription("For Keti and Mute"),
       new SlashCommandBuilder()
         .WithName("manim-text")
         .WithDescription("For Keti and Mute")
         .AddOption("text", ApplicationCommandOptionType.String, "Where's my Hina, Gio", false),
+      new SlashCommandBuilder()
+        .WithName("vcs-test")
+        .WithDescription("Debugging VCS"),
     };
     }
 }
