@@ -23,7 +23,7 @@ public static class CommandRegisration
     foreach (SlashCommandBuilder command in CommandConsts.commands)
     {
       commandName.Add(command.Name);
-      if (CommandConsts.responses.ContainsKey(command.Name))
+      if (CommandConsts.Responses.ContainsKey(command.Name))
       {
         continue;
       }
@@ -31,7 +31,7 @@ public static class CommandRegisration
       Console.WriteLine($"Command: {command.Name}, does not have a response.");
     }
     foreach (
-        KeyValuePair<string, Func<SocketSlashCommand, Task>> respond in CommandConsts.responses
+        KeyValuePair<string, Func<SocketSlashCommand, Task>> respond in CommandConsts.Responses
         )
     {
       if (commandName.Contains(respond.Key))
