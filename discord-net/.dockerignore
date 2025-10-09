@@ -10,3 +10,8 @@
 
 Dockerfile
 *.md
+
+swig/bindings/
+swig/zig-out/
+swig/.zig-cache/
+swig/*_wrap.cxx

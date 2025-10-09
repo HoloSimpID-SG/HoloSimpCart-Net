@@ -6,19 +6,14 @@ using Discord.Net;
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace HoloSimpID
-{
-  public class CartBot
-  {
-    private static readonly string DiscordToken = Environment.GetEnvironmentVariable(
-      "DISCORD_TOKEN"
-    );
-    private static readonly ulong GuildId = ulong.Parse(
-      Environment.GetEnvironmentVariable("GUILD_ID")
-    );
-    private static readonly ulong ThreadId = ulong.Parse(
-      Environment.GetEnvironmentVariable("THREAD_ID")
-    );
+namespace HoloSimpID {
+  public class CartBot {
+    private static readonly string DiscordToken =
+        Environment.GetEnvironmentVariable("DISCORD_TOKEN");
+    private static readonly ulong GuildId =
+        ulong.Parse(Environment.GetEnvironmentVariable("GUILD_ID"));
+    private static readonly ulong ThreadId =
+        ulong.Parse(Environment.GetEnvironmentVariable("THREAD_ID"));
     private static readonly CancellationTokenSource cancellationTokenSource = new();
 
     //-+-+-+-+-+-+-+-+
@@ -29,21 +24,17 @@ namespace HoloSimpID
     public static SocketThreadChannel threadTesting { get; private set; }
     public static CommandService commands { get; private set; }
     public static CancellationToken cancellationToken => cancellationTokenSource.Token;
-    public static readonly HttpClient HttpClient = new();
+    public static readonly HttpClient HttpClient       = new();
 
-    public static async Task Main()
-    {
+    public static async Task Main() {
       //-+-+-+-+-+-+-+-+
       // Load Database
       //-+-+-+-+-+-+-+-+
-      try
-      {
+      try {
         Console.WriteLine("Checking DB EF Migration");
         await AppDbContext.EnsureMigrated();
         Console.WriteLine("DB EF Migration Complete");
-      }
-      catch (Exception ex)
-      {
+      } catch (Exception ex) {
         Console.WriteLine($"Error during EF Migration:{ex.ToStringDemystified()}");
         throw;
       }
@@ -51,7 +42,7 @@ namespace HoloSimpID
       // Starting up the Discord Bot
       // ..these are event listeners
       //-+-+-+-+-+-+-+-+
-      client = new DiscordSocketClient();
+      client   = new DiscordSocketClient();
       commands = new CommandService();
       // .Log sends message to console
       // ..typically for errors.
@@ -63,8 +54,8 @@ namespace HoloSimpID
       client.SlashCommandExecuted += SlashCommandHandler;
       //-+-+-+-+-+-+-+-+
 
-      //await DbHandler.InitializeDB();
-      //await DbHandler.LoadDB();
+      // await DbHandler.InitializeDB();
+      // await DbHandler.LoadDB();
       //-+-+-+-+-+-+-+-+
 
       //-+-+-+-+-+-+-+-+
@@ -78,47 +69,38 @@ namespace HoloSimpID
       //-+-+-+-+-+-+-+-+
       // Optional, but allows for more graceful shutdown
       //-+-+-+-+-+-+-+-+
-      Console.CancelKeyPress += (s, e) =>
-      {
-        e.Cancel = true; // Prevent immediate process termination
+      Console.CancelKeyPress += (s, e) => {
+        e.Cancel = true;  // Prevent immediate process termination
         cancellationTokenSource.Cancel();
       };
-      AppDomain.CurrentDomain.ProcessExit += async (s, e) =>
-      {
-        cancellationTokenSource.Cancel();
-      };
+      AppDomain.CurrentDomain.ProcessExit += async (s, e) => { cancellationTokenSource.Cancel(); };
       //-+-+-+-+-+-+-+-+
 
-      try
-      {
+      try {
         // Hold the application open until cancellation is requested
         await Task.Delay(Timeout.Infinite, cancellationToken);
-      }
-      catch (TaskCanceledException)
-      {
+      } catch (TaskCanceledException) {
         // Handle cancellation gracefully
         await threadTesting.SendMessageAsync("Hina, Nemui");
 
-        //await DbHandler.SaveAllDB();
+        // await DbHandler.SaveAllDB();
         await client.LogoutAsync();
         await client.StopAsync();
       }
     }
 
-    private static async Task ClientReady()
-    {
+    private static async Task ClientReady() {
       //-+-+-+-+-+-+-+-+
       // Load the Guild and Thread/Channel
       //-+-+-+-+-+-+-+-+
-      guild = client.GetGuild(GuildId);
+      guild         = client.GetGuild(GuildId);
       threadTesting = guild.GetThreadChannel(ThreadId);
 
       //-+-+-+-+-+-+-+-+-+
       // Starts Loading
       //-+-+-+-+-+-+-+-+-+
       await threadTesting.SendMessageAsync(
-          "Hina, Waking Up.\nPlease wait while I drink my coffee."
-          );
+          "Hina, Waking Up.\nPlease wait while I drink my coffee.");
 
       await CommandRegisration.Start(guild);
 
@@ -130,14 +112,10 @@ namespace HoloSimpID
       await threadTesting.SendMessageAsync("Hina caffeinated, ready to serve.");
     }
 
-    private static async Task SlashCommandHandler(SocketSlashCommand command)
-    {
-      try
-      {
-        await CommandConsts.responses[command.Data.Name].Invoke(command);
-      }
-      catch (Exception e)
-      {
+    private static async Task SlashCommandHandler(SocketSlashCommand command) {
+      try {
+        await CommandConsts.Responses[command.Data.Name].Invoke(command);
+      } catch (Exception e) {
         StringBuilder strErr = new();
         strErr.AppendLine("Error when performing command:");
         strErr.AppendLine($"{e.ToStringDemystified()}");
@@ -145,8 +123,7 @@ namespace HoloSimpID
       }
     }
 
-    private static Task Log(LogMessage msg)
-    {
+    private static Task Log(LogMessage msg) {
       Console.WriteLine(msg.ToString());
       return Task.CompletedTask;
     }
