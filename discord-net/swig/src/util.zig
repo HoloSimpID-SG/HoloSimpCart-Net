@@ -1,6 +1,6 @@
 const std = @import("std");
 
-export fn zig_hello(name: [*:0]const u8, number: i32) ?[*:0]u8 {
+pub export fn zig_hello(name: [*:0]const u8, number: i32) callconv(.C) ?[*:0]u8 {
   const allocator = std.heap.c_allocator;
 
   const formatted = std.fmt.allocPrint(allocator, "{s} {d} (By Zig)", .{ name, number }) catch return null;

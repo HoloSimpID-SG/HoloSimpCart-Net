@@ -9,8 +9,8 @@ RUN dnf install -y \
 
 WORKDIR /src/swig
 RUN mkdir bindings && \
-  swig -csharp -c++ -outdir ./bindings -namespace Native swig.i && \
-  zig build --release=fast
+  swig -csharp -c++ -outdir ./bindings -namespace Native -v swig.i && \
+  zig build --release=fast --verbose
 
 WORKDIR /src
 RUN dotnet restore && \
