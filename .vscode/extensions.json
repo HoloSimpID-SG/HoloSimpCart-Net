@@ -1,11 +1,24 @@
 {
   "recommendations": [
+    // C#
     "muhammad-sammy.csharp",
-    "aaron-bond.better-comments",
-    "ms-azuretools.vscode-containers",
+
+    // Python
+    "charliermarsh.ruff",
+
+    // Zig + C++
+    "llvm-vs-code-extensions.vscode-clangd",
+    "ziglang.vscode-zig",
+
+    // DB
     "mtxr.sqltools",
     "mtxr.sqltools-driver-pg",
-    "ibm.output-colorizer",
-    "charliermarsh.ruff"
+
+    // Containers
+    "ms-azuretools.vscode-containers",
+
+    // Utilities
+    "aaron-bond.better-comments",
+    "ibm.output-colorizer"
   ]
 }

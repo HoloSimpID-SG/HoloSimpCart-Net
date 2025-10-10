@@ -21,6 +21,16 @@
       "options": {
         "cwd": "${workspaceFolder}/discord-net"
       }
+    },
+    {
+      "label": "Swig Generate",
+      "type": "shell",
+      "command":
+          "rm -rf ./bindings && mkdir bindings && swig -csharp -c++ -outdir ./bindings -namespace Native -v swig.i",
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}/discord-net/swig"
+      }
     }
   ],
   "inputs": [
