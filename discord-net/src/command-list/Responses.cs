@@ -419,7 +419,7 @@ namespace HoloSimpID {
 
             var test_class = new Native.stl_mt19937(42u);
 
-            await command.RespondAsync(test_class.HelloZig(userName));
+            await command.RespondAsync(test_class.ZigNum());
             test_class.Dispose();
           },
       ["cpp-hello"] =

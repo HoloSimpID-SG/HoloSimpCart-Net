@@ -34,5 +34,8 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Migrations\*.cs" />
-  </ItemGroup>
+    </ItemGroup>
+        <PropertyGroup>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+</PropertyGroup>
 </Project>

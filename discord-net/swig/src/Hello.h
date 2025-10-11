@@ -10,4 +10,5 @@ class stl_mt19937 {
   stl_mt19937(uint32_t seed = time(nullptr));
   int GetRandom();
   std::string HelloZig(std::string name);
+  std::string ZigNum();
 };
