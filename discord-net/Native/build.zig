@@ -110,7 +110,7 @@ fn genEntry(b: *std.Build, src_dir: []const u8, out: []const u8) !void {
 }
 
 pub fn build(b: *std.Build) void {
-    const entry_file = "__entry.zig";
+    const entry_file = "__root.zig";
     genEntry(
         b,
         "src/",

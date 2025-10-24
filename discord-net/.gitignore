@@ -5,10 +5,4 @@
 [Oo]bj/
 [Pp]ublish/
 
-App.config
-packages.config
-
-!flake.lock
-!packages.lock.json
-
 __*.zig

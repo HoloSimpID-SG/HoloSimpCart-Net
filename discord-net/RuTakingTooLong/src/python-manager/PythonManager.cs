@@ -4,29 +4,20 @@ using System.Text.Json.Nodes;
 
 namespace HoloSimpID;
 
-public static partial class Python
-{
+public static partial class Python {
   private static readonly HttpClient client_ = new();
-  private const string url_base_ = "http://python-uvicorn:8000/";
+  private const string url_base_             = "http://python-uvicorn:8000/";
 
   public static async Task<(bool success, string value)> Invoke(
-    string fast_api_key,
-    JsonObject parameters
-  )
-  {
+      string fast_api_key, JsonObject parameters) {
     string result;
-    try
-    {
-      var response = await client_.PostAsync(
-        url_base_ + fast_api_key,
-        JsonContent.Create(parameters)
-      );
+    try {
+      var response =
+          await client_.PostAsync(url_base_ + fast_api_key, JsonContent.Create(parameters));
       response.EnsureSuccessStatusCode();
       result = await response.Content.ReadAsStringAsync();
       return (true, result);
-    }
-    catch (Exception ex)
-    {
+    } catch (Exception ex) {
       Console.WriteLine(ex.ToStringDemystified());
       return (false, $"Error calling {fast_api_key}");
     }

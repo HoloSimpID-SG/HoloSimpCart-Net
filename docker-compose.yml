@@ -27,7 +27,6 @@ services:
       - shared:/shared
 
   discord-bot:
-    # platform: linux/arm64
     build:
       context: ./discord-net
       dockerfile: Dockerfile

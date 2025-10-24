@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MMOR.NET", "MMOR.NET\MMOR.NET.csproj", "{7523B016-9B46-4811-8647-31450C5E932C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Native", "Native\Native.csproj", "{5AC1362B-1585-4F17-BD24-FA6D88E3194E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RuTakingTooLong", "RuTakingTooLong\RuTakingTooLong.csproj", "{C36903EA-A677-4B54-899B-0C9463B44B9F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7523B016-9B46-4811-8647-31450C5E932C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7523B016-9B46-4811-8647-31450C5E932C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7523B016-9B46-4811-8647-31450C5E932C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7523B016-9B46-4811-8647-31450C5E932C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5AC1362B-1585-4F17-BD24-FA6D88E3194E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5AC1362B-1585-4F17-BD24-FA6D88E3194E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5AC1362B-1585-4F17-BD24-FA6D88E3194E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5AC1362B-1585-4F17-BD24-FA6D88E3194E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C36903EA-A677-4B54-899B-0C9463B44B9F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C36903EA-A677-4B54-899B-0C9463B44B9F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C36903EA-A677-4B54-899B-0C9463B44B9F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C36903EA-A677-4B54-899B-0C9463B44B9F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

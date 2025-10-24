@@ -5,22 +5,15 @@ COPY ./ ./
 RUN dnf install -y \
   dotnet-sdk-8.0 \
   zig-0.14.1 \
-  swig-4.3.1 && \
+  swig-4.3.1 \
+  make-4.4.1 && \
   dnf clean all
 
-WORKDIR /src/swig
-RUN mkdir bindings && \
-  swig -csharp -c++ -outdir ./bindings -namespace Native -v swig.i && \
-  zig build --release=fast --verbose
-
-WORKDIR /src
-RUN dotnet restore && \
-    dotnet publish -c Release -o ./out && \
-    cp ./swig/zig-out/lib/** ./out/
+RUN make
 
 FROM fedora:42 AS final
 WORKDIR /app
-COPY --from=build /src/out ./
+COPY --from=build /src/bin ./
 
 RUN dnf install -y \
   dotnet-runtime-8.0 && \
