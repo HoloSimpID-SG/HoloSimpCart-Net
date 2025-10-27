@@ -17,16 +17,17 @@ services:
       retries: 5
 
   python-uvicorn:
+    container_name: python-uvicorn
     build:
       context: ./python-uvicorn
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
-    container_name: python-uvicorn
     volumes:
       - shared:/shared
 
   discord-bot:
+    container_name: discord-bot
     build:
       context: ./discord-net
       dockerfile: Dockerfile

@@ -13,7 +13,7 @@ fn reverseSlice(slice: []u8) void {
 // Dont call this yet
 // it crashes the bot
 // I still don't undertand strings in zig
-pub fn zig_hello(name: [*:0]const u8, number: i32) callconv(.C) [*:0]u8 {
+pub fn zig_hello(name: [*:0]const u8, number: i32) callconv(.c) [*:0]u8 {
     const allocator = std.heap.c_allocator;
     const input = std.mem.span(name);
     const result = allocator.allocSentinel(u8, input.len + 50, 0) catch unreachable;
@@ -26,7 +26,7 @@ pub fn zig_hello(name: [*:0]const u8, number: i32) callconv(.C) [*:0]u8 {
     return formatted.ptr;
 }
 
-pub fn zig_num(number: i32) callconv(.C) i32 {
+pub fn zig_num(number: i32) callconv(.c) i32 {
     const rand = std.crypto.random.intRangeAtMost(i32, -number, number);
     return rand;
 }
