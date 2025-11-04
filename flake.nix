@@ -32,6 +32,7 @@
             cairo
             pango
             gobject-introspection
+            pkgconf
 
             gnumake
             podman
