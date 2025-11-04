@@ -7,7 +7,7 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
@@ -15,7 +15,7 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             # C#
-            dotnet-sdk
+            dotnet-sdk_10
             dotnet-ef
             roslyn-ls
 
@@ -27,10 +27,18 @@
 
             python3
             ruff
+            basedpyright
+            # Manim Requirements
+            cairo
+            pango
+            gobject-introspection
 
             gnumake
             podman
             podman-compose
+
+            nixd # LSP for Nix
+            nixfmt
           ];
 
           shellHook = ''
