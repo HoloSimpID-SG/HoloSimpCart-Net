@@ -1,9 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Logging;
 using Npgsql;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure;
 using System.Diagnostics;
 
 namespace HoloSimpID {

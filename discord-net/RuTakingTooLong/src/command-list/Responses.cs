@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json.Nodes;
 using Discord;
@@ -8,8 +7,6 @@ using Discord.WebSocket;
 using MMOR.NET.Random;
 using MMOR.NET.Statistics;
 using MMOR.NET.Utilities;
-using Newtonsoft.Json.Linq;
-using Native;
 
 namespace HoloSimpID {
   /// <summary>
