@@ -31,12 +31,18 @@ configure: swig
 native:	swig
 	cd ./Native && zig build --release=fast -Dtarget=$(ARCH)-linux-musl --verbose
 
-build: native configure
+build: swig configure
 	dotnet build -c Release
 
-install: build
-	dotnet publish -c Release -o "$(OUTDIR)" ./RuTakingTooLong/RuTakingTooLong.csproj
+install-native: native
+	mkdir -p "$(OUTDIR)"
 	cp ./Native/zig-out/lib/** "$(OUTDIR)"
+
+install-dotnet: build
+	mkdir -p "$(OUTDIR)"
+	dotnet publish -c Release -o "$(OUTDIR)" ./RuTakingTooLong/RuTakingTooLong.csproj
+
+install: install-native install-dotnet
 
 run: install
 	dotnet ./bin/RuTakingTooLong.dll
