@@ -1,6 +1,6 @@
 FROM fedora:42 AS build
 RUN dnf install -y \
-  dotnet-sdk-8.0 \
+  dotnet-sdk-9.0 \
   swig-4.3.1 \
   make-4.4.1 && \
   dnf clean all
@@ -23,7 +23,7 @@ WORKDIR /app
 COPY --from=build /src/bin ./
 
 RUN apk add --no-cache \
-  dotnet8-runtime
+  dotnet9-runtime
 
 ENV LANG=en_US.UTF-8 \
   LC_ALL=en_US.UTF-8

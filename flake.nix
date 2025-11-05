@@ -15,9 +15,10 @@
         devShells.default = pkgs.mkShell {
           packages = with pkgs; [
             # C#
-            dotnet-sdk_10
+            dotnet-sdk_9
             dotnet-ef
             roslyn-ls
+            xmlformat
 
             # Zig + C++
             zig
@@ -41,10 +42,6 @@
             nixd # LSP for Nix
             nixfmt
           ];
-
-          shellHook = ''
-          echo "You are using pre-configured Nix Shell for HoloSimpCart-NET"
-          '';
         };
       }
     );

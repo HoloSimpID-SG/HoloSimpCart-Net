@@ -4,15 +4,15 @@ OUTDIR = ./bin
 all: install
 
 clean:
-	dotnet clean
-	rm -rf ./**/[Oo]bj/
-	rm -rf ./**/[Bb]in/
+	rm -rf ./**/obj/
+	rm -rf ./**/bin/
 	rm -f ./**/compile_commands.json
 	rm -rf ./Native/.zig-cache/
 	rm -rf ./Native/zig-out/
 	rm -f ./Native/bindings/*.cs
 	rm -f ./**/*_wrap.cxx
 	rm -f ./**/__*.zig
+	dotnet clean
 
 lock: configure
 	jq -s 'reduce .[] as $$item ({}; . * $$item)' \
@@ -25,7 +25,7 @@ swig:
 	swig -csharp -c++ -outdir ./Native/bindings -namespace Native -v ./Native/swig.i
 
 configure: swig
-	dotnet restore
+	dotnet restore --packages ./.nuget
 	cd ./Native && zig build cdb
 
 native:	swig
