@@ -25,7 +25,7 @@ swig:
 	swig -csharp -c++ -outdir ./Native/bindings -namespace Native -v ./Native/swig.i
 
 configure: swig
-	dotnet restore --packages ./.nuget
+	dotnet restore
 	cd ./Native && zig build cdb
 
 native:	swig
