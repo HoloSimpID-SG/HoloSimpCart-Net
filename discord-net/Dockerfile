@@ -1,4 +1,4 @@
-FROM fedora:42 AS build
+FROM registry.fedoraproject.org/fedora:42 AS build
 RUN dnf install -y \
   dotnet-sdk-9.0 \
   swig-4.3.1 \
