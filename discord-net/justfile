@@ -25,6 +25,10 @@ swig:
   swig -csharp -c++ -outdir ./Native/bindings -namespace Native -v ./Native/swig.i
 
 configure: swig
+  rm -f *.sln
+  rm -f *.slnx
+  dotnet new sln
+  dotnet sln add ./**/*.csproj
   dotnet restore
   cd ./Native && zig build cdb
 

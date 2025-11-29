@@ -6,3 +6,6 @@
 [Pp]ublish/
 
 __*.zig
+
+*.slnx
+*.sln
