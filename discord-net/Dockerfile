@@ -1,8 +1,8 @@
-FROM fedora:42 AS build
+FROM registry.fedoraproject.org/fedora:42 AS build
 RUN dnf install -y \
   dotnet-sdk-9.0 \
   swig-4.3.1 \
-  make-4.4.1 && \
+  just-1.43.1 && \
   dnf clean all
 
 # Fedora zig repo is behind
@@ -16,7 +16,7 @@ ENV PATH="/zig:$PATH"
 WORKDIR /src
 COPY ./ ./
 
-RUN make ARCH="$(arch)"
+RUN just ARCH="$(arch)"
 
 FROM alpine:3.22 AS final
 WORKDIR /app

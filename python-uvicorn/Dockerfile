@@ -1,13 +1,11 @@
-FROM python:3.13
-
-# For Manim
-RUN apt-get install -y \
-  gcc
-
+FROM ghcr.io/prefix-dev/pixi:latest
 WORKDIR /python-uvicorn
-COPY . .
-RUN pip install --no-cache-dir .
+
+COPY ./ ./
+RUN pixi install --verbose
 
 EXPOSE 8000
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+ENV PATH="/python-uvicorn/.pixi/envs/default/bin:$PATH"
+
+CMD ["pixi", "run", "run"]

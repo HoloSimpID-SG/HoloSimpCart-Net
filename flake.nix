@@ -26,26 +26,22 @@
             dotnet-ef
             roslyn-ls
             xmlformat
-
             # Zig + C++
             zig
             swig
             zls
             clang-tools
-
+            # Python
             python3
             ruff
             basedpyright
-            # Manim Requirements
-            cairo
-            pango
-            gobject-introspection
-            pkgconf
-
-            gnumake
+            # Others
+            just
+            nushell
+            postgresql
             podman
             podman-compose
-
+            # flake management
             nixd # LSP for Nix
             nixfmt
           ];
