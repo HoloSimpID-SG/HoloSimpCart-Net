@@ -6,7 +6,8 @@ namespace HoloSimpID;
 
 public static partial class Python {
   private static readonly HttpClient client_ = new();
-  private const string url_base_             = "http://python-uvicorn:8000/";
+  private static readonly string url_base_ =
+      $"http://python-uvicorn:{Environment.GetEnvironmentVariable("UVICORN_PORT")}/";
 
   public static async Task<(bool success, string value)> Invoke(
       string fast_api_key, JsonObject parameters) {
