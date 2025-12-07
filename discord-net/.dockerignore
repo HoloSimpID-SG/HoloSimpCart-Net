@@ -5,13 +5,19 @@
 [Bb]in/
 [Pp]ublish/
 
-.git/
+__*.zig
+
+*.slnx
+*.sln
+
+flake*
 .gitignore
 
 Dockerfile
-*.md
 
-swig/bindings/
-swig/zig-out/
-swig/.zig-cache/
-swig/*_wrap.cxx
+Native/zig-out/
+Native/.zig-cache/
+Native/*_wrap.cxx
+Native/*_wrap.cxx
+Native/bindings/
+Native/compile_commands.json
