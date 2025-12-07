@@ -6,4 +6,4 @@ RUN pixi install --verbose
 
 ENV PATH="/python-uvicorn/.pixi/envs/default/bin:$PATH"
 
-CMD ["pixi", "run", "run"]
+ENTRYPOINT ["pixi", "run", "run"]
