@@ -1,5 +1,0 @@
-[[rule]]
-include = ["pyproject.toml"]
-
-[rule.schema]
-path = "https://json.schemastore.org/pyproject.json"

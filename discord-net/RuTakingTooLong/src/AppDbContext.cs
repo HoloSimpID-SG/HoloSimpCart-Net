@@ -6,6 +6,12 @@ using System.Diagnostics;
 
 namespace HoloSimpID {
   public class AppDbContext : DbContext {
+    public static readonly string kSqlConnection =
+        $"Host={Environment.GetEnvironmentVariable("POSTGRES_HOST")};" +
+        $"Port={Environment.GetEnvironmentVariable("POSTGRES_PORT")};" +
+        $"Username={Environment.GetEnvironmentVariable("POSTGRES_USER")};" +
+        $"Password={Environment.GetEnvironmentVariable("POSTGRES_PASSWORD")};" +
+        $"Database={Environment.GetEnvironmentVariable("POSTGRES_DB")}";
 #region Mappings
     public DbSet<CommandVCS> CommandVCS { get; set; } = null!;
 
@@ -32,16 +38,14 @@ namespace HoloSimpID {
         entity.Property(e => e.DatePlan).HasColumnType("timestamptz");
         entity.Property(e => e.DateClose).HasColumnType("timestamptz");
         entity.Property(e => e.DateDelivered).HasColumnType("timestamptz");
-      }
-      );
+      });
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
       if (optionsBuilder.IsConfigured)
         return;
 
-      var dataSourceBuilder =
-          new NpgsqlDataSourceBuilder(Environment.GetEnvironmentVariable("SQL_CONNECTION"));
+      var dataSourceBuilder = new NpgsqlDataSourceBuilder(kSqlConnection);
       dataSourceBuilder.EnableDynamicJson();
       NpgsqlDataSource dataSource = dataSourceBuilder.Build();
 
@@ -49,8 +53,7 @@ namespace HoloSimpID {
     }
 
     public static async Task EnsureMigrated() {
-      var dataSourceBuilder =
-          new NpgsqlDataSourceBuilder(Environment.GetEnvironmentVariable("SQL_CONNECTION"));
+      var dataSourceBuilder = new NpgsqlDataSourceBuilder(kSqlConnection);
       dataSourceBuilder.EnableDynamicJson();
       NpgsqlDataSource dataSource = dataSourceBuilder.Build();
 
@@ -81,8 +84,10 @@ namespace HoloSimpID {
   }
   public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext> {
     public AppDbContext CreateDbContext(string[] args) {
-      var connectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION") ??
-                             "Host=localhost;Database=test;Username=test;Password=test";
+      // var connectionString = Environment.GetEnvironmentVariable("SQL_CONNECTION") ??
+      //                        "Host=localhost;Database=test;Username=test;Password=test";
+      // var connectionString = "Host=localhost;Database=test;Username=test;Password=test";
+      var connectionString = AppDbContext.kSqlConnection;
 
       var dataSourceBuilder = new NpgsqlDataSourceBuilder(connectionString);
       dataSourceBuilder.EnableDynamicJson();

@@ -2,16 +2,17 @@ services:
   database:
     image: postgres:16
     restart: always
-    environment:
-      POSTGRES_USER: hina_cart
-      POSTGRES_PASSWORD: hina_cart
-      POSTGRES_DB: hina_cart
+    env_file:
+      - ./.env
+    expose:
+      - "${POSTGRES_PORT}"
     ports:
-      - "5432:5432"
+      - "5432:${POSTGRES_PORT}"
+    command: -p ${POSTGRES_PORT}
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hina_cart"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -p $${POSTGRES_PORT}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -21,8 +22,12 @@ services:
     build:
       context: ./python-uvicorn
       dockerfile: Dockerfile
+    env_file:
+      - ./.env
+    expose:
+      - "${UVICORN_PORT}"
     ports:
-      - "8000:8000"
+      - "8000:${UVICORN_PORT}"
     volumes:
       - shared:/shared
 
@@ -31,14 +36,11 @@ services:
     build:
       context: ./discord-net
       dockerfile: Dockerfile
+    env_file:
+      - ./.env
     depends_on:
       database:
         condition: service_healthy
-    environment:
-      DISCORD_TOKEN: ${DISCORD_TOKEN}
-      GUILD_ID: ${GUILD_ID}
-      THREAD_ID: ${THREAD_ID}
-      SQL_CONNECTION: ${SQL_CONNECTION}
     volumes:
       - shared:/shared
 

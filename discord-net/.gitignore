@@ -9,3 +9,5 @@ __*.zig
 
 *.slnx
 *.sln
+
+.nuget/
