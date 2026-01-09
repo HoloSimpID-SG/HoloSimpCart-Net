@@ -1,7 +1,7 @@
 {
   inputs = {
     self.submodules = true;
-    nixpkgs.url = "github:NixOS/nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     nuget-packageslock2nix = {
       url = "github:mdarocha/nuget-packageslock2nix";
@@ -10,8 +10,10 @@
 
     native = {
       url = "path:./Native";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.flake-utils.follows = "flake-utils";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
     };
   };
 
