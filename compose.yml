@@ -21,7 +21,7 @@ services:
     container_name: python-uvicorn
     build:
       context: ./python-uvicorn
-      dockerfile: Dockerfile
+      dockerfile: Containerfile
     env_file:
       - ./.env
     expose:
@@ -35,7 +35,7 @@ services:
     container_name: discord-bot
     build:
       context: ./discord-net
-      dockerfile: Dockerfile
+      dockerfile: Containerfile
     env_file:
       - ./.env
     depends_on:
