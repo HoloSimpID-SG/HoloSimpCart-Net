@@ -1,5 +1,26 @@
 {
   "nodes": {
+    "discord-net": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "native": "native",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nuget-packageslock2nix": "nuget-packageslock2nix"
+      },
+      "locked": {
+        "path": "./discord-net",
+        "type": "path"
+      },
+      "original": {
+        "path": "./discord-net",
+        "type": "path"
+      },
+      "parent": []
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -18,6 +39,29 @@
         "type": "github"
       }
     },
+    "native": {
+      "inputs": {
+        "flake-utils": [
+          "discord-net",
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "discord-net",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "path": "./Native",
+        "type": "path"
+      },
+      "original": {
+        "path": "./Native",
+        "type": "path"
+      },
+      "parent": [
+        "discord-net"
+      ]
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1761880412,
@@ -34,10 +78,52 @@
         "type": "github"
       }
     },
+    "nuget-packageslock2nix": {
+      "inputs": {
+        "nixpkgs": [
+          "discord-net",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1761040608,
+        "narHash": "sha256-QWNZT450i/89ud1Tkk+MjwfJzDgg8wrpS/x2jPthN6I=",
+        "owner": "mdarocha",
+        "repo": "nuget-packageslock2nix",
+        "rev": "d629f61009274fb4cd1fe9b24a30f9849251b25c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mdarocha",
+        "repo": "nuget-packageslock2nix",
+        "type": "github"
+      }
+    },
+    "python-uvicorn": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "path": "./python-uvicorn",
+        "type": "path"
+      },
+      "original": {
+        "path": "./python-uvicorn",
+        "type": "path"
+      },
+      "parent": []
+    },
     "root": {
       "inputs": {
+        "discord-net": "discord-net",
         "flake-utils": "flake-utils",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "python-uvicorn": "python-uvicorn"
       }
     },
     "systems": {
