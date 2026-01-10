@@ -57,7 +57,7 @@
 
               prek
               nixd # LSP for Nix
-              nixfmt
+              alejandra
             ])
             ++ mergedPackages;
           env = mergedEnv;

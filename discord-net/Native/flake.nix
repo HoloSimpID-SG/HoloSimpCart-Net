@@ -25,7 +25,7 @@
             clang-tools
 
             nixd
-            nixfmt
+            alejandra
           ];
         };
         devShells = pkgs.mkShellNoCC self.devShellFragments.${system}.default;

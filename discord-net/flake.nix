@@ -17,28 +17,25 @@
     };
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-      nuget-packageslock2nix,
-      native,
-      ...
-    }:
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    nuget-packageslock2nix,
+    native,
+    ...
+  }:
     flake-utils.lib.eachDefaultSystem (
-      system:
-      let
+      system: let
         project = "RuTakingTooLong";
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs {inherit system;};
         fragments = [
           native.devShellFragments.${system}.default
         ];
-        mergedPackages = builtins.concatLists (map (f: f.packages or [ ]) fragments);
-        mergedEnv = builtins.foldl' (a: b: a // (b.env or { })) { } fragments;
+        mergedPackages = builtins.concatLists (map (f: f.packages or []) fragments);
+        mergedEnv = builtins.foldl' (a: b: a // (b.env or {})) {} fragments;
         mergedShellHook = builtins.concatStringsSep "\n" (map (f: f.shellHook or "") fragments);
-      in
-      {
+      in {
         packages.default = pkgs.buildDotnetModule {
           pname = project;
           version = "1.0.0";
@@ -95,7 +92,7 @@
               hadolint
 
               nixd
-              nixfmt
+              alejandra
             ])
             ++ mergedPackages;
           env = mergedEnv;

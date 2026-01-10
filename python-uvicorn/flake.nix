@@ -5,19 +5,16 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs =
-    {
-      self,
-      nixpkgs,
-      flake-utils,
-      ...
-    }:
+  outputs = {
+    self,
+    nixpkgs,
+    flake-utils,
+    ...
+  }:
     flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-      in
-      {
+      system: let
+        pkgs = import nixpkgs {inherit system;};
+      in {
         devShellFragments.default = {
           packages = with pkgs; [
             python3
@@ -30,7 +27,7 @@
             hadolint
 
             nixd
-            nixfmt
+            alejandra
           ];
         };
         devShells = pkgs.mkShellNoCC self.devShellFragments.${system}.default;
