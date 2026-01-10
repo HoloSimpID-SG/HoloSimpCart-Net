@@ -6,4 +6,5 @@ zig-out/
 bindings/
 
 # Clangd
+.cache/
 compile_commands.json
