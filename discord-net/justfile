@@ -19,6 +19,9 @@ clean:
 #   #!/usr/bin/env nu
 #   rm -f ./packages.lock.json
 #   open ./**/packages.lock.json | reduce --fold {} {|item, acc| $acc | merge $item} | save packages.lock.json
+[working-directory: "./Native"]
+zon2nix:
+  zon2nix > ./build.zig.zon.nix
 
 swig:
   mkdir -p ./Native/bindings/
