@@ -14,10 +14,10 @@ clean:
   rm -f ./**/__*.zig
   dotnet clean
 
-lock: configure
-  #!/usr/bin/env nu
-  rm -f ./packages.lock.json
-  open ./**/packages.lock.json | reduce --fold {} {|item, acc| $acc | merge $item} | save packages.lock.json
+# lock: configure
+#   #!/usr/bin/env nu
+#   rm -f ./packages.lock.json
+#   open ./**/packages.lock.json | reduce --fold {} {|item, acc| $acc | merge $item} | save packages.lock.json
 
 swig:
   mkdir -p ./Native/bindings/
@@ -31,19 +31,19 @@ configure: swig
   dotnet new sln
   dotnet sln add ./**/*.csproj
   dotnet restore
-  cd ./Native && zig build cdb
+  cd ./Native # && zig build cdb
 
-native:  swig
+native: swig
   cd ./Native && zig build --release=fast -Dtarget={{ARCH}}-linux-musl --verbose
 
-build: swig configure
-  dotnet build -c Release
+build: swig
+  dotnet build ./RuTakingTooLong/RuTakingTooLong.csproj -c Release
 
 install-native: native
   mkdir -p "{{OUTDIR}}"
   cp ./Native/zig-out/lib/** "{{OUTDIR}}"
 
-install-dotnet: build
+install-dotnet: configure build
   mkdir -p "{{OUTDIR}}"
   dotnet publish -c Release -o "{{OUTDIR}}" ./RuTakingTooLong/RuTakingTooLong.csproj
 

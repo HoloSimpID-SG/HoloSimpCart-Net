@@ -1,7 +1,7 @@
 {
   inputs = {
     self.submodules = true;
-    nixpkgs.url = "github:NixOS/nixpkgs-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     nuget-packageslock2nix = {
       url = "github:mdarocha/nuget-packageslock2nix";
@@ -44,6 +44,9 @@
           version = "1.0.0";
           src = ./.;
 
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_9_0;
+          dotnet-runtime = pkgs.dotnetCorePackages.runtime_9_0;
+
           nativeBuildInputs = with pkgs; [
             swig
             just
@@ -53,16 +56,23 @@
             just swig
           '';
 
+          buildPhase = ''
+            just build
+          '';
+
           projectFile = "${project}/${project}.csproj";
 
           nugetDeps = nuget-packageslock2nix.lib {
             inherit system;
             name = project;
-            lockfiles = [ ./packages.lock.json ];
+            lockfiles = [
+              ./MMOR.NET/packages.lock.json
+              ./${project}/packages.lock.json
+            ];
           };
 
           installPhase = ''
-            just install OUTDIR=$out
+            just OUTDIR=$out install-dotnet
           '';
         };
 
@@ -75,17 +85,15 @@
           packages =
             self.packages.${system}.default.nativeBuildInputs
             ++ (with pkgs; [
-              dotnet-sdk_9
+              # dotnet-sdk_9
               dotnet-ef
               roslyn-ls
-              # swig
 
               xmlformat
               clang-tools
 
-              # just
               just-lsp
-              nushell
+              # nushell
 
               podman
               hadolint

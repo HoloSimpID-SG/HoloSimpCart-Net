@@ -18,17 +18,37 @@
         "type": "github"
       }
     },
+    "native": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "path": "./Native",
+        "type": "path"
+      },
+      "original": {
+        "path": "./Native",
+        "type": "path"
+      },
+      "parent": []
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1761323738,
-        "narHash": "sha256-4wAJWLQq2gdkFzp72sSnNtzZb8H7yKEqlf+ABZfEibk=",
+        "lastModified": 1767966113,
+        "narHash": "sha256-mSTsvXa4WveSRJexsmCbm9dY17B1fKp7NLpJxllpQw4=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "385f0a2ebbff162a2ba67c72e6ab2f21f5a2f006",
+        "rev": "5f02c91314c8ba4afe83b256b023756412218535",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -40,11 +60,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1761040608,
-        "narHash": "sha256-QWNZT450i/89ud1Tkk+MjwfJzDgg8wrpS/x2jPthN6I=",
+        "lastModified": 1765240224,
+        "narHash": "sha256-jfs0uUqEVfytry0RyecBZO8+l7xR+KE+1P4QUA8qan8=",
         "owner": "mdarocha",
         "repo": "nuget-packageslock2nix",
-        "rev": "d629f61009274fb4cd1fe9b24a30f9849251b25c",
+        "rev": "0994485bbedb6d5758795d774b2346553083fdfd",
         "type": "github"
       },
       "original": {
@@ -56,6 +76,7 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "native": "native",
         "nixpkgs": "nixpkgs",
         "nuget-packageslock2nix": "nuget-packageslock2nix"
       }
