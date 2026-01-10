@@ -52,12 +52,8 @@
             just
           ];
 
-          preConfigure = ''
-            just swig
-          '';
-
           buildPhase = ''
-            just build
+            just FLAGS="--sc" build
           '';
 
           projectFile = "${project}/${project}.csproj";
@@ -72,7 +68,7 @@
           };
 
           installPhase = ''
-            just OUTDIR=$out install-dotnet
+            just OUTDIR=$out FLAGS="--sc" install-dotnet
           '';
         };
 

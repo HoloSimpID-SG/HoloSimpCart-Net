@@ -1,5 +1,6 @@
 ARCH := "x86_64"
 OUTDIR := "./bin"
+FLAGS := "--sc"
 
 all: install
 
@@ -45,7 +46,7 @@ install-native: native
 
 install-dotnet: configure build
   mkdir -p "{{OUTDIR}}"
-  dotnet publish -c Release -o "{{OUTDIR}}" ./RuTakingTooLong/RuTakingTooLong.csproj
+  dotnet publish -c Release -o "{{OUTDIR}}" "{{FLAGS}}" ./RuTakingTooLong/RuTakingTooLong.csproj
 
 install: install-native install-dotnet
 
