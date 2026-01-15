@@ -59,9 +59,9 @@
             just
           ];
 
-          runtimeDeps = [
-            inputs.native.packages.${system}.default
-          ];
+          # runtimeDeps = [
+          #   inputs.native.packages.${system}.default
+          # ];
 
           buildPhase = ''
             just FLAGS="--sc" build
@@ -78,8 +78,8 @@
             ];
           };
 
-          installphase = ''
-            just outdir=$out flags="--sc" install-dotnet
+          installPhase = ''
+            just OUTDIR=$out FLAGS="--sc" install-dotnet
           '';
         };
 

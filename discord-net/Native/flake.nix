@@ -24,10 +24,10 @@
         # b = pkgs.callPackage ./build.zig.zon.nix {};
       in {
         packages.default = pkgs.stdenvNoCC.mkDerivation {
-          buildInputs = [
-            (pkgs.callPackage ./third_party/boozt-zig.zon.nix {})
-            (pkgs.callPackage ./build.zig.zon.nix {})
-          ];
+          # buildInputs = [
+          #   a
+          #   b
+          # ];
 
           pname = "libNative";
           version = "1.0";
@@ -47,10 +47,10 @@
           #   ln -s ${pkgs.callPackage ./build.zig.zon.nix {}} $ZIG_GLOBAL_CACHE_DIR/p
           # '';
           buildPhase = ''
-            just native
-            # zig build --release=fast \
-            #   -Dtarget=x86_64-linux-musl --verbose \
-            #   --search-prefix ${pkgs.boost.out}
+            # just native
+            zig build --release=fast \
+              -Dtarget=x86_64-linux-musl --verbose \
+              --search-prefix ${pkgs.boost.out}
           '';
           # installPhase = ''
           #   just OUTDIR=$out install-native
@@ -64,6 +64,9 @@
               zls
               clang-tools
               zon2nix
+
+              nix-prefetch-git
+              jq
 
               nixd
               alejandra
