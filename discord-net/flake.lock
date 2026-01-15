@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "flake-compat": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1767039857,
+        "narHash": "sha256-vNpUSpF5Nuw8xvDLj2KCwwksIbjua2LZCqhV1LNRDns=",
+        "owner": "NixOS",
+        "repo": "flake-compat",
+        "rev": "5edf11c44bc78a0d334f6334cdaf7d60d732daab",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "flake-compat",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -20,12 +36,14 @@
     },
     "native": {
       "inputs": {
+        "flake-compat": "flake-compat",
         "flake-utils": [
           "flake-utils"
         ],
         "nixpkgs": [
           "nixpkgs"
-        ]
+        ],
+        "zon2nix": "zon2nix"
       },
       "locked": {
         "path": "./Native",
@@ -93,6 +111,27 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "zon2nix": {
+      "inputs": {
+        "nixpkgs": [
+          "native",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1762717967,
+        "narHash": "sha256-iL7BNlatn34yABkggwdo/Gb+tNHyIl9sD6uCIbd5Nno=",
+        "owner": "jcollie",
+        "repo": "zon2nix",
+        "rev": "28d75a74ac02eef5af438b6bccd9dd1fc840729e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jcollie",
+        "repo": "zon2nix",
         "type": "github"
       }
     }

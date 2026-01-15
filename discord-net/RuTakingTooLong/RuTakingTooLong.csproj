@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
  <PropertyGroup>
-  <OutputType>Exe</OutputType>
+      <OutputType>Exe</OutputType>
   <TargetFramework>net9.0</TargetFramework>
   <Nullable>enable</Nullable>
   <ImplicitUsings>true</ImplicitUsings>
@@ -22,6 +22,8 @@
  </ItemGroup>
  <ItemGroup>
   <ProjectReference Include="../MMOR.NET/MMOR.NET.csproj" />
+  <PackageReference Include="MMOR.NET" Version="*" Condition=" '$(ContinuousIntegrationBuild)'=='true' "/>
   <ProjectReference Include="../Native/Native.csproj" />
+  <PackageReference Include="Native" Version="*" Condition=" '$(ContinuousIntegrationBuild)'=='true' "/>
  </ItemGroup>
 </Project>

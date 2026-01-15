@@ -15,22 +15,32 @@
         flake-utils.follows = "flake-utils";
       };
     };
+
+    # mmor-net = {
+    #   url = "path:./MMOR.NET/src";
+    #   inputs = {
+    #     nixpkgs.follows = "nixpkgs";
+    #     flake-utils.follows = "flake-utils";
+    #   };
+    # };
   };
 
   outputs = {
     self,
     nixpkgs,
     flake-utils,
-    nuget-packageslock2nix,
-    native,
+    # nuget-packageslock2nix,
+    # native,
+    # mmor-net,
     ...
-  }:
+  } @ inputs:
     flake-utils.lib.eachDefaultSystem (
       system: let
         project = "RuTakingTooLong";
         pkgs = import nixpkgs {inherit system;};
         fragments = [
-          native.devShellFragments.${system}.default
+          inputs.native.devShellFragments.${system}.default
+          # inputs.mmor-net.devShellFragments.${system}.default
         ];
         mergedPackages = builtins.concatLists (map (f: f.packages or []) fragments);
         mergedEnv = builtins.foldl' (a: b: a // (b.env or {})) {} fragments;
@@ -39,7 +49,7 @@
         packages.default = pkgs.buildDotnetModule {
           pname = project;
           version = "1.0.0";
-          src = ./.;
+          src = nixpkgs.lib.cleanSource ./.;
 
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_9_0;
           dotnet-runtime = pkgs.dotnetCorePackages.runtime_9_0;
@@ -49,13 +59,17 @@
             just
           ];
 
+          runtimeDeps = [
+            inputs.native.packages.${system}.default
+          ];
+
           buildPhase = ''
             just FLAGS="--sc" build
           '';
 
           projectFile = "${project}/${project}.csproj";
 
-          nugetDeps = nuget-packageslock2nix.lib {
+          nugetDeps = inputs.nuget-packageslock2nix.lib {
             inherit system;
             name = project;
             lockfiles = [
@@ -64,8 +78,8 @@
             ];
           };
 
-          installPhase = ''
-            just OUTDIR=$out FLAGS="--sc" install-dotnet
+          installphase = ''
+            just outdir=$out flags="--sc" install-dotnet
           '';
         };
 
@@ -78,15 +92,14 @@
           packages =
             self.packages.${system}.default.nativeBuildInputs
             ++ (with pkgs; [
-              # dotnet-sdk_9
               dotnet-ef
               roslyn-ls
+              swig
 
               xmlformat
               clang-tools
 
               just-lsp
-              # nushell
 
               podman
               hadolint

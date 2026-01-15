@@ -1,3 +1,6 @@
 [submodule "MMOR.NET"]
 	path = discord-net/MMOR.NET/src
 	url = https://github.com/mcahyadit/MMOR.NET.git
+[submodule "boost-zig"]
+	path = discord-net/Native/third_party/boost-zig
+	url = https://github.com/allyourcodebase/boost-libraries-zig.git

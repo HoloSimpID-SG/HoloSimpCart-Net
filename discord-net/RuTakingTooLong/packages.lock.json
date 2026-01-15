@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    "net9.0": {
+                   "net9.0": {
       "Ben.Demystifier": {
         "type": "Direct",
         "requested": "[0.4.1, )",
@@ -518,6 +518,6 @@
       "native": {
         "type": "Project"
       }
-    }
+    }, "net9.0/linux-x64": {}
   }
 }

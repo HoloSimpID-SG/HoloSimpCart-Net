@@ -151,6 +151,7 @@ pub fn build(b: *std.Build) !void {
         try mod.include_dirs.append(b.allocator, include_dir);
     }
     mod.linkLibrary(boost_artifact);
+    // mod.linkSystemLibrary("boost",.{});
 
     const lib = b.addLibrary(.{
         .name = "Native",
