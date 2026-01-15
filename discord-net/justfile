@@ -23,7 +23,7 @@ clean:
 [working-directory: "./Native"]
 zon2nix:
   zon2nix > ./build.zig.zon.nix
-  ./Native/zon2nix-fix.sh
+  ./zon2nix-fix.sh
 
 swig:
   mkdir -p ./Native/bindings/
