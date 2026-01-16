@@ -35,46 +35,69 @@
         project = "RuTakingTooLong";
         pkgs = import nixpkgs {inherit system;};
       in {
-        packages.default = pkgs.buildDotnetModule {
-          pname = project;
-          version = "1.0.0";
-          src = nixpkgs.lib.cleanSource ./.;
+        packages = {
+          default = pkgs.buildDotnetModule {
+            pname = project;
+            version = "1.0.0";
+            src = pkgs.lib.cleanSource ./.;
 
-          dotnet-sdk = pkgs.dotnetCorePackages.sdk_9_0;
-          dotnet-runtime = pkgs.dotnetCorePackages.runtime_9_0;
+            dotnet-sdk = pkgs.dotnetCorePackages.sdk_9_0;
+            dotnet-runtime = pkgs.dotnetCorePackages.runtime_9_0;
 
-          nativeBuildInputs = with pkgs; [
-            swig
-            just
-          ];
-
-          # runtimeDeps = [
-          #   inputs.native.packages.${system}.default
-          # ];
-
-          buildPhase = ''
-            just FLAGS="--sc" build
-          '';
-
-          projectFile = "${project}/${project}.csproj";
-
-          nugetDeps = inputs.nuget-packageslock2nix.lib {
-            inherit system;
-            name = project;
-            lockfiles = [
-              ./MMOR.NET/packages.lock.json
-              ./${project}/packages.lock.json
+            nativeBuildInputs = with pkgs; [
+              swig
+              just
             ];
-          };
 
-          installPhase = ''
-            just OUTDIR=$out FLAGS="--sc" install-dotnet
-          '';
+            # runtimeDeps = [
+            #   inputs.native.packages.${system}.default
+            # ];
+
+            buildPhase = ''
+              just FLAGS="--sc" build
+            '';
+
+            projectFile = "${project}/${project}.csproj";
+
+            nugetDeps = inputs.nuget-packageslock2nix.lib {
+              inherit system;
+              name = project;
+              lockfiles = [
+                ./MMOR.NET/packages.lock.json
+                ./${project}/packages.lock.json
+              ];
+            };
+
+            installPhase = ''
+              just OUTDIR=$out FLAGS="--sc" install-dotnet
+            '';
+          };
+          container = pkgs.dockerTools.buildLayeredImage {
+            name = pkgs.lib.toLower project;
+            tag = "latest";
+            contents = [
+              self.packages.${system}.default
+            ];
+            config = {
+              Entrypoint = [
+                "${self.packages.${system}.default}/${project}"
+              ];
+            };
+          };
         };
 
-        apps.default = {
-          type = "app";
-          program = "${self.packages.${system}.default}/${project}";
+        apps = {
+          default = {
+            type = "app";
+            program = "${self.packages.${system}.default}/${project}";
+          };
+          container = {
+            type = "app";
+            program = "${pkgs.writeShellScriptBin "container" ''
+              podman load < $(nix build .#container --print-out-paths)
+              podman run -it --rm localhost/${pkgs.lib.toLower project}:latest
+            ''}/bin/container";
+          };
         };
 
         devShells.default = pkgs.mkShellNoCC {
