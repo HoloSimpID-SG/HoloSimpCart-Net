@@ -41,6 +41,7 @@
             version = "1.0.0";
             src = pkgs.lib.cleanSource ./.;
 
+            projectFile = "${project}/${project}.csproj";
             dotnet-sdk = pkgs.dotnetCorePackages.sdk_9_0;
             dotnet-runtime = pkgs.dotnetCorePackages.runtime_9_0;
 
@@ -48,17 +49,9 @@
               swig
               just
             ];
-
-            # runtimeDeps = [
-            #   inputs.native.packages.${system}.default
-            # ];
-
             buildPhase = ''
-              just FLAGS="--sc" build
+              just DOTNET_FLAGS="--sc" build
             '';
-
-            projectFile = "${project}/${project}.csproj";
-
             nugetDeps = inputs.nuget-packageslock2nix.lib {
               inherit system;
               name = project;
@@ -67,10 +60,12 @@
                 ./${project}/packages.lock.json
               ];
             };
-
             installPhase = ''
-              just OUTDIR=$out FLAGS="--sc" install-dotnet
+              just DOTNET_FLAGS="--sc" OUTDIR=$out install-dotnet
             '';
+            runtimeDeps = [
+              inputs.native.packages.${system}.default
+            ];
           };
           container = pkgs.dockerTools.buildLayeredImage {
             name = pkgs.lib.toLower project;
