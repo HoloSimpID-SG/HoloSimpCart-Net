@@ -24,30 +24,26 @@
     };
   };
 
-  outputs =
-    {
-      nixpkgs,
-      flake-utils,
-      discord-net,
-      python-uvicorn,
-      ...
-    }:
-    flake-utils.lib.eachDefaultSystem (
-      system:
-      let
-        pkgs = import nixpkgs { inherit system; };
-        fragments = [
-          discord-net.devShellFragments.${system}.default
-          python-uvicorn.devShellFragments.${system}.default
-        ];
-        mergedPackages = builtins.concatLists (map (f: f.packages or [ ]) fragments);
-        mergedEnv = builtins.foldl' (a: b: a // (b.env or { })) { } fragments;
-        mergedShellHook = builtins.concatStringsSep "\n" (map (f: f.shellHook or "") fragments);
-      in
-      {
+  outputs = {
+    self,
+    nixpkgs,
+    ...
+  } @ inputs:
+    inputs.flake-utils.lib.eachDefaultSystem (
+      system: let
+        pkgs = import nixpkgs {inherit system;};
+      in {
+        packages.discord-net = inputs.discord-net.packages.${system}.default;
         devShells.default = pkgs.mkShellNoCC {
+          inputsFrom =
+            (builtins.attrValues self.packages.${system})
+            ++ [
+              inputs.discord-net.devShells.${system}.default
+              # inputs.python-uvicorn.devShells.${system}.default
+            ];
           packages =
-            (with pkgs; [
+            [self.formatter.${system}]
+            ++ (with pkgs; [
               just
               just-lsp
 
@@ -56,13 +52,10 @@
               podman-compose
 
               prek
-              nixd # LSP for Nix
-              alejandra
-            ])
-            ++ mergedPackages;
-          env = mergedEnv;
-          shellHook = mergedShellHook;
+              nixd
+            ]);
         };
+        formatter = pkgs.alejandra;
       }
     );
 }

@@ -3,31 +3,19 @@
     self.submodules = true;
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-
-    # zon2nix = {
-    #   url = "github:jcollie/zon2nix";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
   };
 
   outputs = {
     self,
     nixpkgs,
-    flake-utils,
-    # zon2nix,
     ...
   } @ inputs:
-    flake-utils.lib.eachDefaultSystem (
+    inputs.flake-utils.lib.eachDefaultSystem (
       system: let
         pkgs = import nixpkgs {inherit system;};
-        # a = pkgs.callPackage ./third_party/boost-zig.zon.nix {};
-        # b = pkgs.callPackage ./build.zig.zon.nix {};
       in {
         packages.default = pkgs.stdenvNoCC.mkDerivation {
-          # buildInputs = [
-          #   a
-          #   b
-          # ];
+          deps = pkgs.callPackage ./build.zig.zon.nix {};
 
           pname = "libNative";
           version = "1.0";
@@ -56,10 +44,10 @@
           #   just OUTDIR=$out install-native
           # '';
         };
-        devShellFragments.default = {
+        devShells.default = pkgs.mkShellNoCC {
+          inputsFrom = builtins.attrValues self.packages.${system};
           packages =
-            self.packages.${system}.default.nativeBuildInputs
-            ++ self.packages.${system}.default.buildInputs
+            [self.formatter.${system}]
             ++ (with pkgs; [
               zls
               clang-tools
@@ -69,11 +57,10 @@
               jq
 
               nixd
-              alejandra
             ]);
           # ++ zon2nix;
         };
-        devShells = pkgs.mkShellNoCC self.devShellFragments.${system}.default;
+        formatter = pkgs.alejandra;
       }
     );
 }

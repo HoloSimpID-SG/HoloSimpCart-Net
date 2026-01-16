@@ -34,6 +34,26 @@
         "type": "github"
       }
     },
+    "mmor-net": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "nuget-packageslock2nix": "nuget-packageslock2nix"
+      },
+      "locked": {
+        "path": "./MMOR.NET/src",
+        "type": "path"
+      },
+      "original": {
+        "path": "./MMOR.NET/src",
+        "type": "path"
+      },
+      "parent": []
+    },
     "native": {
       "inputs": {
         "flake-compat": "flake-compat",
@@ -74,6 +94,27 @@
     "nuget-packageslock2nix": {
       "inputs": {
         "nixpkgs": [
+          "mmor-net",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1765240224,
+        "narHash": "sha256-jfs0uUqEVfytry0RyecBZO8+l7xR+KE+1P4QUA8qan8=",
+        "owner": "mdarocha",
+        "repo": "nuget-packageslock2nix",
+        "rev": "0994485bbedb6d5758795d774b2346553083fdfd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mdarocha",
+        "repo": "nuget-packageslock2nix",
+        "type": "github"
+      }
+    },
+    "nuget-packageslock2nix_2": {
+      "inputs": {
+        "nixpkgs": [
           "nixpkgs"
         ]
       },
@@ -94,9 +135,10 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "mmor-net": "mmor-net",
         "native": "native",
         "nixpkgs": "nixpkgs",
-        "nuget-packageslock2nix": "nuget-packageslock2nix"
+        "nuget-packageslock2nix": "nuget-packageslock2nix_2"
       }
     },
     "systems": {
