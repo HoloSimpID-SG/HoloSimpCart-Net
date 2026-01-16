@@ -62,10 +62,8 @@
             };
             installPhase = ''
               just DOTNET_FLAGS="--sc" OUTDIR=$out install-dotnet
+              cp -r ${inputs.native.packages.${system}.default}/* $out
             '';
-            runtimeDeps = [
-              inputs.native.packages.${system}.default
-            ];
           };
           container = pkgs.dockerTools.buildLayeredImage {
             name = pkgs.lib.toLower project;

@@ -31,7 +31,7 @@
             just ZIG_FLAGS="--system ${finalAttrs.zon}" native
           '';
           installPhase = ''
-            just ZIG_FLAGS="--system ${finalAttrs.zon}" OUTDIR=$out install-native
+            just ZIG_FLAGS="--system ${finalAttrs.zon}" TRIPLE="${system}-gnu" OUTDIR=$out install-native
           '';
         });
         devShells.default = pkgs.mkShellNoCC {

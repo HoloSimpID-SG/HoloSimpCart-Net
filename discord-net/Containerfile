@@ -16,7 +16,7 @@ ENV PATH="/zig:$PATH"
 WORKDIR /src
 COPY ./ ./
 
-RUN just ARCH="$(arch)"
+RUN just TRIPLE="$(arch)-linux-musl"
 
 FROM alpine:3.22 AS final
 WORKDIR /app

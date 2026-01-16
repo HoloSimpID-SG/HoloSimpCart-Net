@@ -1,4 +1,4 @@
-ARCH := "x86_64"
+TRIPLE := "x86_64-linux-musl"
 OUTDIR := "./bin"
 DOTNET_FLAGS := "--sc"
 ZIG_FLAGS := ""
@@ -37,11 +37,10 @@ configure: swig
   dotnet new sln
   dotnet sln add ./**/*.csproj
   dotnet restore
-  cd ./Native # && zig build cdb
 
 [working-directory: "./Native"]
 native: swig
-  zig build {{ZIG_FLAGS}} --release=fast -Dtarget={{ARCH}}-linux-musl --verbose
+  zig build {{ZIG_FLAGS}} --release=fast -Dtarget={{TRIPLE}} --verbose
 
 build: swig
   dotnet build ./RuTakingTooLong/RuTakingTooLong.csproj -c Release
