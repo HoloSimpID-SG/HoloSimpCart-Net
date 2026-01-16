@@ -1,6 +1,7 @@
 ARCH := "x86_64"
 OUTDIR := "./bin"
-FLAGS := "--sc"
+DOTNET_FLAGS := "--sc"
+ZIG_FLAGS := ""
 
 all: install
 
@@ -23,7 +24,6 @@ clean:
 [working-directory: "./Native"]
 zon2nix:
   zon2nix > ./build.zig.zon.nix
-  ./zon2nix-fix.sh
 
 swig:
   mkdir -p ./Native/bindings/
@@ -39,8 +39,9 @@ configure: swig
   dotnet restore
   cd ./Native # && zig build cdb
 
+[working-directory: "./Native"]
 native: swig
-  cd ./Native && zig build --release=fast -Dtarget={{ARCH}}-linux-musl --verbose
+  zig build {{ZIG_FLAGS}} --release=fast -Dtarget={{ARCH}}-linux-musl --verbose
 
 build: swig
   dotnet build ./RuTakingTooLong/RuTakingTooLong.csproj -c Release
@@ -51,7 +52,7 @@ install-native: native
 
 install-dotnet: configure build
   mkdir -p "{{OUTDIR}}"
-  dotnet publish -c Release -o "{{OUTDIR}}" "{{FLAGS}}" ./RuTakingTooLong/RuTakingTooLong.csproj
+  dotnet publish -c Release -o "{{OUTDIR}}" "{{DOTNET_FLAGS}}" ./RuTakingTooLong/RuTakingTooLong.csproj
 
 install: install-native install-dotnet
 

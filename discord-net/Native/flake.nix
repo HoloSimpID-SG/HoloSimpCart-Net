@@ -14,36 +14,26 @@
       system: let
         pkgs = import nixpkgs {inherit system;};
       in {
-        packages.default = pkgs.stdenvNoCC.mkDerivation {
-          deps = pkgs.callPackage ./build.zig.zon.nix {};
-
+        packages.default = pkgs.stdenvNoCC.mkDerivation (finalAttrs: {
           pname = "libNative";
           version = "1.0";
           src = pkgs.lib.cleanSource ./..;
+          zon = pkgs.callPackage ./build.zig.zon.nix {};
           nativeBuildInputs = with pkgs; [
+            zig
             just
             swig
-            zig
           ];
-          zigPreferMusl = true;
-          # buildInputs =
-          #   (pkgs.callPackage ./build.zig.zon.nix {})
-          #   ++ (with pkgs; [
-          #     boost
-          #   ]);
-          # postPatch = ''
-          #   ln -s ${pkgs.callPackage ./build.zig.zon.nix {}} $ZIG_GLOBAL_CACHE_DIR/p
-          # '';
-          buildPhase = ''
-            # just native
-            zig build --release=fast \
-              -Dtarget=x86_64-linux-musl --verbose \
-              --search-prefix ${pkgs.boost.out}
+          configurePhase = ''
+            just swig
           '';
-          # installPhase = ''
-          #   just OUTDIR=$out install-native
-          # '';
-        };
+          buildPhase = ''
+            just ZIG_FLAGS="--system ${finalAttrs.zon}" native
+          '';
+          installPhase = ''
+            just ZIG_FLAGS="--system ${finalAttrs.zon}" OUTDIR=$out install-native
+          '';
+        });
         devShells.default = pkgs.mkShellNoCC {
           inputsFrom = builtins.attrValues self.packages.${system};
           packages =
@@ -58,7 +48,6 @@
 
               nixd
             ]);
-          # ++ zon2nix;
         };
         formatter = pkgs.alejandra;
       }

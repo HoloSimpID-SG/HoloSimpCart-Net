@@ -141,16 +141,16 @@ pub fn build(b: *std.Build) !void {
         },
     });
 
-    const boost_dep = b.dependency("boost", .{
-        .target = target,
-        .optimize = optimize,
-    });
-    const boost_artifact = boost_dep.artifact("boost");
-
-    for (boost_artifact.root_module.include_dirs.items) |include_dir| {
-        try mod.include_dirs.append(b.allocator, include_dir);
-    }
-    mod.linkLibrary(boost_artifact);
+    // const boost_dep = b.dependency("boost", .{
+    //     .target = target,
+    //     .optimize = optimize,
+    // });
+    // const boost_artifact = boost_dep.artifact("boost");
+    //
+    // for (boost_artifact.root_module.include_dirs.items) |include_dir| {
+    //     try mod.include_dirs.append(b.allocator, include_dir);
+    // }
+    // mod.linkLibrary(boost_artifact);
     // mod.linkSystemLibrary("boost",.{});
 
     const lib = b.addLibrary(.{
@@ -161,6 +161,7 @@ pub fn build(b: *std.Build) !void {
     b.installArtifact(lib);
 
     try targets.append(b.allocator, lib);
-    var cc_step = zcc.createStep(b, "cdb", try targets.toOwnedSlice(b.allocator));
-    cc_step.dependOn(&boost_artifact.step);
+    _ = zcc.createStep(b, "cdb", try targets.toOwnedSlice(b.allocator));
+    // var cc_step = zcc.createStep(b, "cdb", try targets.toOwnedSlice(b.allocator));
+    // cc_step.dependOn(&boost_artifact.step);
 }
