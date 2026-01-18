@@ -8,14 +8,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    native = {
-      url = "path:./Native";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        flake-utils.follows = "flake-utils";
-      };
-    };
-
     mmor-net = {
       url = "path:./MMOR.NET/src";
       inputs = {
@@ -32,26 +24,33 @@
   } @ inputs:
     inputs.flake-utils.lib.eachDefaultSystem (
       system: let
-        project = "RuTakingTooLong";
         pkgs = import nixpkgs {inherit system;};
+        project = "RuTakingTooLong";
+        # container_name = pkgs.lib.toLower project;
+        container_name = "discord-bot";
       in {
         packages = {
-          default = pkgs.buildDotnetModule {
+          default = pkgs.buildDotnetModule (finalAttrs: {
             pname = project;
             version = "1.0.0";
             src = pkgs.lib.cleanSource ./.;
 
+            zonDeps = pkgs.callPackage ./Native/build.zig.zon.nix {};
             projectFile = "${project}/${project}.csproj";
             dotnet-sdk = pkgs.dotnetCorePackages.sdk_9_0;
             dotnet-runtime = pkgs.dotnetCorePackages.runtime_9_0;
 
             nativeBuildInputs = with pkgs; [
+              zig
               swig
               just
             ];
-            buildPhase = ''
-              just DOTNET_FLAGS="--sc" build
-            '';
+            buildPhase = "true";
+            # buildPhase = ''
+            #   just DOTNET_FLAGS="--sc" \
+            #     ZIG_FLAGS="--system ${finalAttrs.zonDeps}" \
+            #     TRIPLE="${system}-gnu" build
+            # '';
             nugetDeps = inputs.nuget-packageslock2nix.lib {
               inherit system;
               name = project;
@@ -61,12 +60,13 @@
               ];
             };
             installPhase = ''
-              just DOTNET_FLAGS="--sc" OUTDIR=$out install-dotnet
-              cp -r ${inputs.native.packages.${system}.default}/* $out
+              just DOTNET_FLAGS="--sc" \
+                ZIG_FLAGS="--system ${finalAttrs.zonDeps}" \
+                TRIPLE="${system}-gnu" OUTDIR=$out install
             '';
-          };
+          });
           container = pkgs.dockerTools.buildLayeredImage {
-            name = pkgs.lib.toLower project;
+            name = container_name;
             tag = "latest";
             contents = [
               self.packages.${system}.default
@@ -88,7 +88,7 @@
             type = "app";
             program = "${pkgs.writeShellScriptBin "container" ''
               podman load < $(nix build .#container --print-out-paths)
-              podman run -it --rm localhost/${pkgs.lib.toLower project}:latest
+              podman run -it --rm localhost/${container_name}:latest
             ''}/bin/container";
           };
         };
@@ -96,10 +96,7 @@
         devShells.default = pkgs.mkShellNoCC {
           inputsFrom =
             (builtins.attrValues self.packages.${system})
-            ++ [
-              inputs.native.devShells.${system}.default
-              inputs.mmor-net.devShells.${system}.default
-            ];
+            ++ [inputs.mmor-net.devShells.${system}.default];
           packages =
             [self.formatter.${system}]
             ++ (with pkgs; [
@@ -107,10 +104,11 @@
               roslyn-ls
               swig
 
+              zls
+              zon2nix
+
               xmlformat
               clang-tools
-
-              just-lsp
 
               podman
               hadolint

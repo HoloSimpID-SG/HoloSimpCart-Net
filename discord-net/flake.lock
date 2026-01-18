@@ -38,25 +38,6 @@
       },
       "parent": []
     },
-    "native": {
-      "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "path": "./Native",
-        "type": "path"
-      },
-      "original": {
-        "path": "./Native",
-        "type": "path"
-      },
-      "parent": []
-    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1768395095,
@@ -118,7 +99,6 @@
       "inputs": {
         "flake-utils": "flake-utils",
         "mmor-net": "mmor-net",
-        "native": "native",
         "nixpkgs": "nixpkgs",
         "nuget-packageslock2nix": "nuget-packageslock2nix_2"
       }

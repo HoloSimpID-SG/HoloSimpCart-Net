@@ -42,8 +42,8 @@ configure: swig
 native: swig
   zig build {{ZIG_FLAGS}} --release=fast -Dtarget={{TRIPLE}} --verbose
 
-build: swig
-  dotnet build ./RuTakingTooLong/RuTakingTooLong.csproj -c Release
+build: swig native
+  dotnet build ./RuTakingTooLong/RuTakingTooLong.csproj -c Release "{{DOTNET_FLAGS}}"
 
 install-native: native
   mkdir -p "{{OUTDIR}}"
