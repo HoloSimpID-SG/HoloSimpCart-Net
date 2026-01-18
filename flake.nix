@@ -38,24 +38,69 @@
           inherit pkgs;
           modules = [
             ({pkgs, ...}: {
-              project.name = "HoloSimpCart-Net";
+              project.name = "holo-simp-cart";
               services = {
                 database = {
                   service = {
                     image = "postgres:16";
+                    environment = {
+                      POSTGRES_HOST = "$POSTGRES_HOST";
+                      POSTGRES_PORT = "$POSTGRES_PORT";
+                      POSTGRES_USER = "$POSTGRES_USER";
+                      POSTGRES_PASSWORD = "$POSTGRES_PASSWORD";
+                      POSTGRES_DB = "$POSTGRES_DB";
+                    };
+                    # user = "root";
+                    ports = ["5432:5432"];
+                    command = ["-p" "5432"];
+                    volumes = [
+                      "db_data:/var/lib/postgresql/data"
+                    ];
+                    healthcheck = {
+                      test = [
+                        "CMD-SHELL"
+                        "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} -p $${POSTGRES_PORT}"
+                      ];
+                      interval = "5s";
+                      timeout = "5s";
+                      retries = 5;
+                    };
                   };
-                  # service.env_file = [./.env];
                 };
                 discord-bot = {
                   build.image = pkgs.lib.mkForce inputs.discord-net.packages.${system}.container;
-                  # service.env_file = [./.env];
-                  service.depends_on = ["db" "python-uvicorn"];
+                  service = {
+                    depends_on.database.condition = "service_healthy";
+                    environment = {
+                      DISCORD_TOKEN = "$DISCORD_TOKEN";
+                      GUILD_ID = "$GUILD_ID";
+                      THREAD_ID = "$THREAD_ID";
+
+                      UVICORN_PORT = "$UVICORN_PORT";
+
+                      POSTGRES_HOST = "$POSTGRES_HOST";
+                      POSTGRES_PORT = "$POSTGRES_PORT";
+                      POSTGRES_USER = "$POSTGRES_USER";
+                      POSTGRES_PASSWORD = "$POSTGRES_PASSWORD";
+                      POSTGRES_DB = "$POSTGRES_DB";
+                    };
+                    volumes = ["shared:/shared"];
+                  };
                 };
                 python-uvicorn = {
                   build.image = pkgs.lib.mkForce inputs.python-uvicorn.packages.${system}.container;
-                  # service.env_file = [./.env];
-                  service.ports = ["8000:80"];
+                  service = {
+                    environment = {
+                      UVICORN_PORT = "$UVICORN_PORT";
+                    };
+                    ports = ["8000:80"];
+                    volumes = ["shared:/shared"];
+                  };
                 };
+              };
+              docker-compose.volumes = {
+                shared = {};
+                db_data = {};
               };
             })
           ];
@@ -65,7 +110,9 @@
           program = "${pkgs.writeShellScriptBin "up" ''
             podman load < ${inputs.discord-net.packages.${system}.container}
             podman load < ${inputs.python-uvicorn.packages.${system}.container}
+            # cd ${toString ./.}
             podman-compose --env-file .env --file ${self.packages.${system}.default} up "$@"
+            # podman-compose --file ${self.packages.${system}.default} up "$@"
           ''}/bin/up";
         };
         devShells.default = pkgs.mkShellNoCC {
