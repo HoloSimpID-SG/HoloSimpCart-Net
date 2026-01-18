@@ -16,7 +16,8 @@ ENV PATH="/zig:$PATH"
 WORKDIR /src
 COPY ./ ./
 
-RUN just TRIPLE="$(arch)-linux-musl"
+ENV DOTNET_FLAGS="--runtime linux-musl-x64"
+RUN just ZIG_FLAGS="-Dtarget=$(arch)-linux-musl"
 
 FROM alpine:3.22 AS final
 WORKDIR /app

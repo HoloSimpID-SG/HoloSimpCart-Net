@@ -1,7 +1,6 @@
-TRIPLE := "x86_64-linux-musl"
 OUTDIR := "./bin"
-DOTNET_FLAGS := "--sc"
-ZIG_FLAGS := ""
+DOTNET_FLAGS := env('DOTNET_FLAGS',"")
+ZIG_FLAGS := env('ZIG_FLAGS',"")
 
 all: install
 
@@ -15,11 +14,6 @@ clean:
   rm -f ./**/*_wrap.cxx
   rm -f ./**/__*.zig
   dotnet clean
-
-# lock: configure
-#   #!/usr/bin/env nu
-#   rm -f ./packages.lock.json
-#   open ./**/packages.lock.json | reduce --fold {} {|item, acc| $acc | merge $item} | save packages.lock.json
 
 [working-directory: "./Native"]
 zon2nix:
@@ -38,23 +32,18 @@ configure: swig
   dotnet sln add ./**/*.csproj
   dotnet restore
 
+[private]
 [working-directory: "./Native"]
-native: swig
-  zig build {{ZIG_FLAGS}} --release=fast -Dtarget={{TRIPLE}} --verbose
+build-native: swig
+  zig build {{ZIG_FLAGS}} --release=fast --verbose
 
-build: swig native
-  dotnet build ./RuTakingTooLong/RuTakingTooLong.csproj -c Release "{{DOTNET_FLAGS}}"
+build: swig build-native
+  dotnet build ./RuTakingTooLong/RuTakingTooLong.csproj -c Release {{DOTNET_FLAGS}}
 
-install-native: native
+install: configure build
   mkdir -p "{{OUTDIR}}"
   cp ./Native/zig-out/lib/** "{{OUTDIR}}"
-
-install-dotnet: configure build
-  mkdir -p "{{OUTDIR}}"
-  dotnet publish -c Release -o "{{OUTDIR}}" "{{DOTNET_FLAGS}}" ./RuTakingTooLong/RuTakingTooLong.csproj
-
-install: install-native install-dotnet
+  dotnet publish -c Release -o "{{OUTDIR}}" {{DOTNET_FLAGS}} ./RuTakingTooLong/RuTakingTooLong.csproj
 
 run: install
-  dotnet ./bin/RuTakingTooLong.dll
 

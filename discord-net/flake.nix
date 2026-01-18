@@ -45,12 +45,11 @@
               swig
               just
             ];
-            buildPhase = "true";
-            # buildPhase = ''
-            #   just DOTNET_FLAGS="--sc" \
-            #     ZIG_FLAGS="--system ${finalAttrs.zonDeps}" \
-            #     TRIPLE="${system}-gnu" build
-            # '';
+            DOTNET_FLAGS = "--self-contained true";
+            ZIG_FLAGS = "-Dtarget=${system}-gnu --system ${finalAttrs.zonDeps}";
+            buildPhase = ''
+              just build
+            '';
             nugetDeps = inputs.nuget-packageslock2nix.lib {
               inherit system;
               name = project;
@@ -60,18 +59,22 @@
               ];
             };
             installPhase = ''
-              just DOTNET_FLAGS="--sc" \
-                ZIG_FLAGS="--system ${finalAttrs.zonDeps}" \
-                TRIPLE="${system}-gnu" OUTDIR=$out install
+              just OUTDIR=$out install
             '';
           });
           container = pkgs.dockerTools.buildLayeredImage {
             name = container_name;
             tag = "latest";
             contents = [
+              pkgs.dotnetCorePackages.runtime_9_0
               self.packages.${system}.default
+              pkgs.cacert
             ];
             config = {
+              Env = [
+                "HOME=/root"
+                "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+              ];
               Entrypoint = [
                 "${self.packages.${system}.default}/${project}"
               ];
