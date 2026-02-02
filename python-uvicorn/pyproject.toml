@@ -23,9 +23,17 @@ source = "uv-dynamic-versioning"
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
 
+[tool.ruff]
+indent-width = 2
+
 [tool.ruff.format]
 indent-style = "space"
 
+[tool.tombi]
+[tool.tombi.format]
+[tool.tombi.format.rules]
+key-value-equals-sign-alignment = true
+string-quote-style = "single"
 
 [tool.uv-dynamic-versioning]
 fallback-version = "0.0.0"
