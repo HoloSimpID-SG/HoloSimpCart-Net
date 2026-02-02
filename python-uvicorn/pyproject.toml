@@ -5,6 +5,7 @@ dependencies = [
   #
   "fastapi",
   "manim",
+  "manim-fonts",
   "pydantic",
   "uvicorn",
 ]
