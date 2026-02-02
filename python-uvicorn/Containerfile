@@ -1,9 +1,13 @@
-FROM ghcr.io/prefix-dev/pixi:latest
+FROM ghcr.io/astral-sh/uv:alpine
 WORKDIR /python-uvicorn
 
+RUN apk add build-base \
+  cairo-dev pango-dev python3-dev
+
 COPY ./ ./
-RUN pixi install --verbose
+ENV UV_NO_DEV=1
+RUN uv sync --locked
 
-ENV PATH="/python-uvicorn/.pixi/envs/default/bin:$PATH"
+ENV PATH="/python-uvicorn/.venv/bin:$PATH"
 
-ENTRYPOINT ["pixi", "run", "run"]
+ENTRYPOINT ["python-uvicorn"]

@@ -1,22 +1,31 @@
 [project]
 name = "python-uvicorn"
-version = "2.3.1.0"
-# dependencies = ["fastapi", "uvicorn", "pydantic", "manim"]
-dependencies = ["fastapi", "uvicorn", "pydantic"]
+requires-python = ">=3.12"
+dependencies = [
+  #
+  "fastapi",
+  "manim",
+  "pydantic",
+  "uvicorn",
+]
+dynamic = ["version"]
+
+[project.scripts]
+python-uvicorn = "app.cli:serve"
+
+[build-system]
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
 
 [tool.ruff.format]
 indent-style = "space"
 
-[tool.pixi.workspace]
-channels = ["conda-forge"]
-platforms = ["linux-64", "linux-aarch64"]
 
-[tool.pixi.dependencies]
-fastapi = "*"
-uvicorn = "*"
-pydantic = "*"
-manim = "*"
-
-[tool.pixi.tasks]
-run = "uvicorn app.main:app --host 0.0.0.0 --port $UVICORN_PORT"
-
+[tool.uv-dynamic-versioning]
+fallback-version = "0.0.0"
