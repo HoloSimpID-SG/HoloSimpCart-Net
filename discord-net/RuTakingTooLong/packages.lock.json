@@ -386,8 +386,8 @@
       },
       "System.Collections.Immutable": {
         "type": "Transitive",
-        "resolved": "9.0.10",
-        "contentHash": "2FkVxKnJVqFtv5zGKSEu2FPqbOScpxw+CvgV0C2MYtXPrT1ZcylAdYlTj3S64iRDV7HGykvagoadUUhZN1/eQg=="
+        "resolved": "10.0.2",
+        "contentHash": "ty6kCaqyoh/M/jKV5yojgta+nf7T8zkkjpRI1beLQkrTC+9R6LS1eCEc+3ED2YUlRyA0g0PXExESnxnW3HcVVQ=="
       },
       "System.Composition": {
         "type": "Transitive",
@@ -499,8 +499,8 @@
       "mmor.net": {
         "type": "Project",
         "dependencies": {
-          "Newtonsoft.json": "[13.0.4, )",
-          "System.Collections.Immutable": "[9.0.10, )"
+          "Newtonsoft.Json": "[13.0.4, )",
+          "System.Collections.Immutable": "[10.0.2, )"
         }
       },
       "native": {

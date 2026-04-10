@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.Extensions.Logging;
 using Npgsql;
+using System;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace HoloSimpID {
   public class AppDbContext : DbContext {

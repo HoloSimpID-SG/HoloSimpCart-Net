@@ -1,7 +1,11 @@
-using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.EntityFrameworkCore;
 using MMOR.NET.RichString;
 
 namespace HoloSimpID;
@@ -50,7 +54,7 @@ public static class CommandRegisration {
 
     // Track which commands remains
     Dictionary<string, bool> registered_commands = db.CommandVCS.ToDictionary(x => x.command_name,
-                                                                              _ => false);
+        _                                                                       => false);
 
     foreach (SlashCommandBuilder command in CommandConsts.commands) {
       try {
@@ -93,7 +97,7 @@ public static class CommandRegisration {
           await db.SaveChangesAsync();
           Console.WriteLine();
           Console.WriteLine($"Finished Registering {command.Name}".SetColor(new(0, 255, 128))
-                                .Format(RichStringFormatter.kTerminal));
+                  .Format(RichStringFormatter.kTerminal));
           Console.WriteLine();
         }
       } catch (Exception ex) {
@@ -116,7 +120,7 @@ public static class CommandRegisration {
 
       Console.WriteLine();
       Console.WriteLine($"Deleting unbound command: {command_name}".SetColor(new(255, 128, 255))
-                            .Format(RichStringFormatter.kTerminal));
+              .Format(RichStringFormatter.kTerminal));
       Console.WriteLine();
     }
 #endregion

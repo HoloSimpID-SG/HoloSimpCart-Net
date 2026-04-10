@@ -4,6 +4,7 @@ using Discord;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using MMOR.NET.Utilities;
+using System;
 namespace HoloSimpID;
 
 public class CommandVCS {

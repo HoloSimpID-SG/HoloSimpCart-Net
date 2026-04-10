@@ -1,4 +1,6 @@
-﻿namespace HoloSimpID {
+using System;
+
+namespace HoloSimpID {
   [Serializable]
   public struct Item {
     public string Name { get; set; }
@@ -14,5 +16,9 @@
     public override string ToString() {
       return Name.Hyperlink(Link);
     }
+  }
+
+  internal class SerializableAttribute : Attribute
+  {
   }
 }
