@@ -3,5 +3,52 @@
   <TargetFramework>net9.0</TargetFramework>
   <ImplicitUsings>enable</ImplicitUsings>
   <Nullable>enable</Nullable>
+  <RuntimeIdentifiers>
+   <!--No need to lists all OS it will work. But DO NOT DELETE. MsBuild is an Idiot.-->
+   <!--If this field is empty or undefined, it will fail to propagate the RuntimeIdentifier.-->
+      linux-x64
+    </RuntimeIdentifiers>
+  <SwigBindDir>bindings</SwigBindDir>
  </PropertyGroup>
+ <ItemGroup>
+  <Compile Remove="$(SwigBindDir)/**/*.cs"/>
+  <Watch Include="**/*.cpp"/>
+  <Watch Include="**/*.h"/>
+  <Watch Include="**/*.zig"/>
+  <Watch Include="swig.i"/>
+  <Watch Remove=".zig-cache/**/*"/>
+  <Watch Remove="zig-out/**/*"/>
+  <Watch Remove="$(SwigBindDir)/**/*"/>
+ </ItemGroup>
+ <Target Name="swig" BeforeTargets="BeforeCompile">
+  <MakeDir Directories="$(SwigBindDir)" Condition="!Exists('$(SwigBindDir)')"/>
+  <WriteLinesToFile Lines="*" File="$(SwigBindDir)/.gitignore" WriteOnlyWhenDifferent="true" Overwrite="true"/>
+  <Exec Command="swig -csharp -c++ -outdir $(SwigBindDir) -namespace Native -v swig.i"
+      StandardOutputImportance="high"/>
+  <ItemGroup>
+   <Compile Include="$(SwigBindDir)/*.cs"/>
+  </ItemGroup>
+ </Target>
+ <Target Name="zig" BeforeTargets="BeforeBuild" DependsOnTargets="swig">
+  <PropertyGroup Label="BuildType">
+   <BuildType>Debug</BuildType>
+   <BuildType Condition="'$(Configuration)' == 'Release'">ReleaseSafe</BuildType>
+  </PropertyGroup>
+  <PropertyGroup Label="TargetTriple">
+   <rid_>$(RuntimeIdentifier)</rid_>
+   <rid_ Condition="'$(RuntimeIdentifier)' == ''">$(NETCoreSdkRuntimeIdentifier)</rid_>
+   <arch_ Condition="$(rid_.Contains('x64'))">x86_64</arch_>
+   <arch_ Condition="$(rid_.Contains('arm64'))">aarch64</arch_>
+   <TargetTriple Condition="$(rid_.Contains('win'))">$(arch_)-windows-gnu</TargetTriple>
+   <TargetTriple Condition="$(rid_.Contains('linux'))">$(arch_)-linux-gnu</TargetTriple>
+   <TargetTriple Condition="$(rid_.Contains('linux-musl'))">$(arch_)-linux-musl</TargetTriple>
+   <TargetTriple Condition="$(rid_.Contains('android'))">$(arch_)-linux-android</TargetTriple>
+   <TargetTriple Condition="$(rid_.Contains('osx'))">$(arch_)-apple-darwin</TargetTriple>
+  </PropertyGroup>
+  <Exec Command="zig build -Dtarget=$(TargetTriple) -Doptimize=$(BuildType) --prefix-lib-dir $(TargetDir) --verbose $(ZIG_EXTRA_FLAGS)"
+      StandardOutputImportance="high"/>
+ </Target>
+ <Target Name="AfterClean" AfterTargets="CoreClean">
+  <RemoveDir Directories="bindings;.zig-cache" />
+ </Target>
 </Project>

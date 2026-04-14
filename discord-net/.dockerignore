@@ -7,19 +7,12 @@
 
 __*.zig
 
-*.slnx
-*.sln
-
-.nuget/
-
-flake*
+*.nix
 .gitignore
 
 Dockerfile
 
-Native/zig-out/
 Native/.zig-cache/
-Native/*_wrap.cxx
 Native/*_wrap.cxx
 Native/bindings/
 Native/compile_commands.json

@@ -1,22 +1,25 @@
-FROM registry.fedoraproject.org/fedora:42 AS build
-RUN dnf install -y \
-  dotnet-sdk-9.0 \
-  swig-4.3.1 \
-  just-1.43.1 && \
+FROM registry.fedoraproject.org/fedora:43 AS build
+RUN dnf --setopt=install_weak_deps=False install -y \
+  dotnet-sdk-10.0 \
+  swig && \
   dnf clean all
 
 # Fedora zig repo is behind
 WORKDIR /zig
-RUN curl -o ./zig.tar.xz "https://ziglang.org/download/0.15.2/zig-$(arch)-linux-0.15.2.tar.xz" && \
+RUN curl -o ./zig.tar.xz "https://ziglang.org/download/0.15.2/zig-$(uname -m)-linux-0.15.2.tar.xz" && \
   tar -xf ./zig.tar.xz --strip-components=1 && \
   rm ./zig.tar.xz
-
 ENV PATH="/zig:$PATH"
 
 WORKDIR /src
 COPY ./ ./
 
-RUN just ARCH="$(arch)"
+RUN ([ "$(uname -m)" = "x86_64" ] && echo "x64" || echo "arm64") >> .tmp-arch
+
+RUN dotnet publish ./RuTakingTooLong \
+  --runtime "linux-musl-$(cat .tmp-arch)" \
+  --configuration Release \
+  --output ./bin
 
 FROM alpine:3.22 AS final
 WORKDIR /app
