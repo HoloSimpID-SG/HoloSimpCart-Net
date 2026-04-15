@@ -153,7 +153,7 @@ pub fn build(b: *std.Build) !void {
     mod.linkLibrary(boost_artifact);
 
     const lib = b.addLibrary(.{
-        .name = "Native",
+        .name = "NativeCore",
         .linkage = .dynamic,
         .root_module = mod,
     });

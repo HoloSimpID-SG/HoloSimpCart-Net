@@ -9,6 +9,7 @@
       linux-x64
     </RuntimeIdentifiers>
   <SwigBindDir>bindings</SwigBindDir>
+  <ZigTmpOut>obj/zig</ZigTmpOut>
  </PropertyGroup>
  <ItemGroup>
   <Compile Remove="$(SwigBindDir)/**/*.cs"/>
@@ -19,6 +20,11 @@
   <Watch Remove=".zig-cache/**/*"/>
   <Watch Remove="zig-out/**/*"/>
   <Watch Remove="$(SwigBindDir)/**/*"/>
+  <None Include="$(ZigTmpOut)/**">
+   <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+   <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+   <Link>%(Filename)%(Extension)</Link>
+  </None>
  </ItemGroup>
  <Target Name="swig" BeforeTargets="BeforeCompile">
   <MakeDir Directories="$(SwigBindDir)" Condition="!Exists('$(SwigBindDir)')"/>
@@ -29,7 +35,7 @@
    <Compile Include="$(SwigBindDir)/*.cs"/>
   </ItemGroup>
  </Target>
- <Target Name="zig" BeforeTargets="BeforeBuild" DependsOnTargets="swig">
+ <Target Name="zig" BeforeTargets="Build;Publish" DependsOnTargets="swig">
   <PropertyGroup Label="BuildType">
    <BuildType>Debug</BuildType>
    <BuildType Condition="'$(Configuration)' == 'Release'">ReleaseSafe</BuildType>
@@ -43,9 +49,9 @@
    <TargetTriple Condition="$(rid_.Contains('linux'))">$(arch_)-linux-gnu</TargetTriple>
    <TargetTriple Condition="$(rid_.Contains('linux-musl'))">$(arch_)-linux-musl</TargetTriple>
    <TargetTriple Condition="$(rid_.Contains('android'))">$(arch_)-linux-android</TargetTriple>
-   <TargetTriple Condition="$(rid_.Contains('osx'))">$(arch_)-apple-darwin</TargetTriple>
+   <TargetTriple Condition="$(rid_.Contains('osx'))">$(arch_)-macos-gnu</TargetTriple>
   </PropertyGroup>
-  <Exec Command="zig build -Dtarget=$(TargetTriple) -Doptimize=$(BuildType) --prefix-lib-dir $(TargetDir) --verbose $(ZIG_EXTRA_FLAGS)"
+  <Exec Command="zig build -Dtarget=$(TargetTriple) -Doptimize=$(BuildType) --prefix . --prefix-lib-dir $(ZigTmpOut) --verbose $(ZIG_EXTRA_FLAGS)"
       StandardOutputImportance="high"/>
  </Target>
  <Target Name="AfterClean" AfterTargets="CoreClean">

@@ -1,4 +1,4 @@
-%module Native
+%module NativeCore
 
 %{
 #include "src/Hello.h"
