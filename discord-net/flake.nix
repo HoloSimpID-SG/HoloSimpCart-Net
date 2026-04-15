@@ -7,41 +7,93 @@
       url = "github:mdarocha/nuget-packageslock2nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    mmor-net = {
+      url = "path:./MMOR.NET";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+        flake-utils.follows = "flake-utils";
+      };
+    };
+
+    zig = {
+      url = "github:mitchellh/zig-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    zon2nix = {
+      url = "github:jcollie/zon2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, nuget-packageslock2nix, ... }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        project = "RuTakingTooLong";
-        pkgs = import nixpkgs { inherit system; };
-      in {
-        packages.default = pkgs.buildDotnetModule {
-          pname = project;
-          version = "1.0.0";
-          src = ./.;
+  outputs = {self, ...} @ inputs:
+    inputs.flake-utils.lib.eachDefaultSystem (system: let
+      project = "RuTakingTooLong";
+      pkgs = import inputs.nixpkgs {
+        inherit system;
+        overlays = [
+          inputs.zig.overlays.default
+        ];
+      };
+    in {
+      packages.default = pkgs.buildDotnetModule (finalAttrs: {
+        pname = project;
+        version = "1.0.0";
+        src = pkgs.lib.cleanSource ./.;
 
-          nativeBuildInputs = with pkgs; [ swig zig_0_14 gnumake ];
+        zonDeps = pkgs.callPackage ./Native/build.zig.zon.nix {};
+        dotnet-sdk = pkgs.dotnetCorePackages.sdk_9_0;
+        dotnet-runtime = pkgs.dotnetCorePackages.runtime_9_0;
 
-          preConfigure = ''
-            make native
-          '';
+        ZigFlags = "--system ${finalAttrs.zonDeps}";
+        TargetFramework = "net9.0";
 
-          projectFile = "${project}/${project}.csproj";
+        nativeBuildInputs = with pkgs; [
+          zig
+          swig
+        ];
 
-          nugetDeps = nuget-packageslock2nix.lib {
-            inherit system;
-            name = project;
-            lockfiles = [ ./packages.lock.json ];
-          };
+        buildPhase = ''
+          dotnet build RuTakingTooLong \
+            --configuration Release
+        '';
 
-          installPhase = ''
-            make install OUTDIR=$out
-          '';
+        nugetDeps = inputs.nuget-packageslock2nix.lib {
+          inherit system;
+          name = project;
+          lockfiles = [
+            ./MMOR.NET/packages.lock.json
+            ./RuTakingTooLong/packages.lock.json
+          ];
         };
 
-        apps.default = {
-          type = "app";
-          program = "${self.packages.${system}.default}/${project}";
-        };
+        installPhase = ''
+          dotnet publish RuTakingTooLong --no-build --output "$out"
+        '';
       });
+
+      apps.default = {
+        type = "app";
+        program = "${self.packages.${system}.default}/${project}";
+      };
+
+      devShells.default = pkgs.mkShellNoCC {
+        inputsFrom =
+          (builtins.attrValues self.packages.${system})
+          ++ [inputs.mmor-net.devShells.${system}.default];
+        packages =
+          [inputs.zon2nix.packages.${system}.zon2nix]
+          ++ (with pkgs; [
+            dotnet-ef
+            roslyn-ls
+
+            zls
+            clang-tools
+
+            lemminx
+            xmlformat
+          ]);
+      };
+    });
 }

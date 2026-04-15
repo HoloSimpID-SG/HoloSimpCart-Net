@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "flake-compat": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1696426674,
+        "narHash": "sha256-kvjfFW7WAETZlt09AgDn1MrtKzP7t90Vf7vypd3OL1U=",
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "rev": "0f9255e01c2351cc7d116c072cb317785dd33b33",
+        "type": "github"
+      },
+      "original": {
+        "owner": "edolstra",
+        "repo": "flake-compat",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -18,13 +34,32 @@
         "type": "github"
       }
     },
+    "mmor-net": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "path": "./MMOR.NET",
+        "type": "path"
+      },
+      "original": {
+        "path": "./MMOR.NET",
+        "type": "path"
+      },
+      "parent": []
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1761323738,
-        "narHash": "sha256-4wAJWLQq2gdkFzp72sSnNtzZb8H7yKEqlf+ABZfEibk=",
+        "lastModified": 1776255774,
+        "narHash": "sha256-psVTpH6PK3q1htMJpmdz1hLF5pQgEshu7gQWgKO6t6Y=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "385f0a2ebbff162a2ba67c72e6ab2f21f5a2f006",
+        "rev": "566acc07c54dc807f91625bb286cb9b321b5f42a",
         "type": "github"
       },
       "original": {
@@ -40,11 +75,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1761040608,
-        "narHash": "sha256-QWNZT450i/89ud1Tkk+MjwfJzDgg8wrpS/x2jPthN6I=",
+        "lastModified": 1775266630,
+        "narHash": "sha256-LcFEKz93wHxqptnyyMEKTQ2bbYp29zxe1NWaid/X06s=",
         "owner": "mdarocha",
         "repo": "nuget-packageslock2nix",
-        "rev": "d629f61009274fb4cd1fe9b24a30f9849251b25c",
+        "rev": "54b3a07723bb16223b3354ae7960ab6b0f17f792",
         "type": "github"
       },
       "original": {
@@ -56,8 +91,11 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "mmor-net": "mmor-net",
         "nixpkgs": "nixpkgs",
-        "nuget-packageslock2nix": "nuget-packageslock2nix"
+        "nuget-packageslock2nix": "nuget-packageslock2nix",
+        "zig": "zig",
+        "zon2nix": "zon2nix"
       }
     },
     "systems": {
@@ -72,6 +110,64 @@
       "original": {
         "owner": "nix-systems",
         "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_2": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "zig": {
+      "inputs": {
+        "flake-compat": "flake-compat",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
+        "systems": "systems_2"
+      },
+      "locked": {
+        "lastModified": 1776083762,
+        "narHash": "sha256-ak1JI5+pDOKt7rsn/TMd8iqSeftgKobUjjR14w8hiiI=",
+        "owner": "mitchellh",
+        "repo": "zig-overlay",
+        "rev": "3651bc659f83fc7ec4c3245faea62a7211ec835c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "mitchellh",
+        "repo": "zig-overlay",
+        "type": "github"
+      }
+    },
+    "zon2nix": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1772256135,
+        "narHash": "sha256-bIoXEJ6WaVyvNPpkakiD6AlyUKa1CZr2hV1P4R/1eXM=",
+        "owner": "jcollie",
+        "repo": "zon2nix",
+        "rev": "74e087ec612631ef109dee3fec108f7c3f53331b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jcollie",
+        "repo": "zon2nix",
         "type": "github"
       }
     }
